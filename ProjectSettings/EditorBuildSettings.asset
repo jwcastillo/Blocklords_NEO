@@ -4,4 +4,13 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Blocklords/Scenes/HeroCreation.unity
+    guid: 42693ebfc19f1458490ed85715747866
+  - enabled: 1
+    path: Assets/Blocklords/Scenes/Default.unity
+    guid: 4246f2b633fbe4aee9f7ec1718a6bbac
+  - enabled: 1
+    path: Assets/Blocklords/Scenes/MainScene.unity
+    guid: 149728e2ae8bd4274a34889a844e01d2
