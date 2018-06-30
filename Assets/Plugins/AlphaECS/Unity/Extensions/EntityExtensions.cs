@@ -186,7 +186,7 @@ namespace AlphaECS
                     {
                         entity.AddComponent(new ViewComponent());
 #if UNITY_EDITOR
-                        Debug.LogWarning("No view found for component " + type.ToString() + " !");
+                        Debug.LogWarning("No view found for component " + type.ToString() + "!");
 #endif
                     }
 

@@ -58,13 +58,13 @@ public class GameDataSystem : SystemBehaviour
             {
                 //check we're not on the initial value, ie, setting up a playerDataComponent that's just been instantiated from the list...
                 //... and ensure the id isn't already being used
-                if(value != previousValue && players.Entities.Where(e => e != entity).Any(e => e.GetComponent<PlayerDataComponent>().ID.Value == value))
-                {
-                    Debug.LogWarning("ID " + value + " ALREADY EXISTS - REVERTING!");
-                    playerDataComponent.ID.Value = previousValue;
-                }
+                //if(value != previousValue && players.Entities.Where(e => e != entity).Any(e => e.GetComponent<PlayerDataComponent>().ID.Value == value))
+                //{
+                //    Debug.LogWarning("ID " + value + " ALREADY EXISTS - REVERTING!");
+                //    playerDataComponent.ID.Value = previousValue;
+                //}
 
-                playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).ToArray();
+                playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
                 var json = JsonHelper.ToJson<string>(playerIDs);
                 ObscuredPrefs.SetString(PlayerKeys.IDs, json);
                 ObscuredPrefs.SetString(PlayerKeys.IDs + playerDataComponent.ID.Value, entity.Serialize());
@@ -76,7 +76,7 @@ public class GameDataSystem : SystemBehaviour
 
         players.OnRemove().Subscribe(entity =>
         {
-            playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).ToArray();
+            playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
             var json = JsonHelper.ToJson(playerIDs.ToArray());
             ObscuredPrefs.SetString(PlayerKeys.IDs, json);
         }).AddTo(this.Disposer);
@@ -127,6 +127,7 @@ public class GameDataSystem : SystemBehaviour
             var playerDataComponent = entity.GetComponent<PlayerDataComponent>();
 
             playerDataComponent.ID.Value = SelectedPlayerData.Value.ID.Value;
+
         }).AddTo(this.Disposer);
     }
 
@@ -146,16 +147,15 @@ public class GameDataSystem : SystemBehaviour
     {
         base.OnDisable();
 
-        //cachedIDs.Clear();
         //playerIDs.Clear();
     }
 }
 
-[Serializable]
-public class PlayerDataTable 
-{
-    public EntityStringTable Data = new EntityStringTable();
-}
+//[Serializable]
+//public class PlayerDataTable 
+//{
+//    public EntityStringTable Data = new EntityStringTable();
+//}
 
-[Serializable]
-public class EntityStringTable : SerializableDictionary<IEntity, string> { }
+//[Serializable]
+//public class EntityStringTable : SerializableDictionary<IEntity, string> { }
