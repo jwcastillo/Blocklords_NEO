@@ -53,12 +53,17 @@ namespace AlphaECS
             return gameObject;
         }
 
-        public GameObject Instantiate(IEntity entity, GameObject prefab, Transform parent)
-        {
-			return Instantiate(entity, prefab, parent, true);
-        }
+        //public GameObject Instantiate(IEntity entity, GameObject prefab, Transform parent)
+        //{
+		//	return Instantiate(entity, prefab, parent, true);
+        //}
 
-		public GameObject Instantiate(IEntity entity, GameObject prefab, Transform parent, bool fastInject)
+        //public GameObject Instantiate(IEntity entity, GameObject prefab, Transform parent = null, bool fastInject = true)
+        //{
+        //    return Instantiate(entity, prefab, parent, true);
+        //}
+
+		public GameObject Instantiate(IEntity entity, GameObject prefab, Transform parent = null, bool fastInject = true, string data = "")
 		{
             var wasActive = prefab.activeSelf;
 			var gameObject = InstantiatePrefab(prefab, parent);
@@ -71,6 +76,11 @@ namespace AlphaECS
 			var entityBehaviour = gameObject.GetComponent<EntityBehaviour>();
 			entityBehaviour.Entity = entity;
 			entityBehaviour.RemoveEntityOnDestroy = false;
+
+            if(!string.IsNullOrEmpty(data))
+            {
+                entity.Deserialize(data);
+            }
 
 			if (fastInject)
 			{

@@ -20,9 +20,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4546119455872422}
   - component: {fileID: 114817764202730372}
-  - component: {fileID: 114855335802791858}
+  - component: {fileID: 114060716184515520}
+  - component: {fileID: 114673621890231694}
   m_Layer: 0
-  m_Name: PlayerData
+  m_Name: HeroData
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -41,6 +42,44 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &114060716184515520
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1167216452375896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35bfce2e29366453abbf88c578da7969, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID:
+    value: 
+  Name:
+    value: 
+  Leadership:
+    value: 0
+  Intelligence:
+    value: 0
+  Strength:
+    value: 0
+  Defense:
+    value: 0
+  Speed:
+    value: 0
+--- !u!114 &114673621890231694
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1167216452375896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25bc732be2b1848a69124756b453460e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID:
+    value: 
 --- !u!114 &114817764202730372
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -55,20 +94,8 @@ MonoBehaviour:
   Proxy: {fileID: 0}
   Id: 
   PoolName: 
-  RemoveEntityOnDestroy: 1
+  RemoveEntityOnDestroy: 0
   Components:
-  - {fileID: 114855335802791858}
+  - {fileID: 114060716184515520}
+  - {fileID: 114673621890231694}
   Blueprints: []
---- !u!114 &114855335802791858
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1167216452375896}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25bc732be2b1848a69124756b453460e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ID:
-    value: default
