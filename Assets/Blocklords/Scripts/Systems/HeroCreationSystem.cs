@@ -57,6 +57,8 @@ public class HeroCreationSystem : SystemBehaviour
                     var json = JsonUtility.ToJson(heroComponent);
                     var hc = PrefabFactory.Instantiate(heroPrefab).GetComponent<HeroComponent>();
                     JsonUtility.FromJsonOverwrite(json, hc);
+                    //HACK to trigger data subscribers until we've got a better saving and loading scheme
+                    hc.ID.SetValueAndForceNotify(heroComponent.ID.Value);
                 }
                 previousValue = value;
             }).AddTo(this.Disposer);

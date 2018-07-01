@@ -55,7 +55,7 @@ MonoBehaviour:
   Proxy: {fileID: 0}
   Id: 
   PoolName: 
-  RemoveEntityOnDestroy: 1
+  RemoveEntityOnDestroy: 0
   Components:
   - {fileID: 114855335802791858}
   Blueprints: []
@@ -72,3 +72,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ID:
     value: default
+  Name:
+    value: 

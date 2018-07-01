@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4546119455872422}
   - component: {fileID: 114817764202730372}
   - component: {fileID: 114060716184515520}
-  - component: {fileID: 114673621890231694}
+  - component: {fileID: 114845911402681532}
   m_Layer: 0
   m_Name: HeroData
   m_TagString: Untagged
@@ -67,19 +67,6 @@ MonoBehaviour:
     value: 0
   Speed:
     value: 0
---- !u!114 &114673621890231694
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1167216452375896}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 25bc732be2b1848a69124756b453460e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ID:
-    value: 
 --- !u!114 &114817764202730372
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -97,5 +84,18 @@ MonoBehaviour:
   RemoveEntityOnDestroy: 0
   Components:
   - {fileID: 114060716184515520}
-  - {fileID: 114673621890231694}
+  - {fileID: 114845911402681532}
   Blueprints: []
+--- !u!114 &114845911402681532
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1167216452375896}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25bc732be2b1848a69124756b453460e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ID:
+    value: 

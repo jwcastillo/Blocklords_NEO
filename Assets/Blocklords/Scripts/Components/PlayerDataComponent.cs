@@ -9,6 +9,7 @@ using AlphaECS;
 public class PlayerDataComponent : ComponentBehaviour
 {
     public StringReactiveProperty ID = new StringReactiveProperty();
+    public StringReactiveProperty Name = new StringReactiveProperty();
 }
 
 [Serializable]

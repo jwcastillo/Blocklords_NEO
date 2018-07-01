@@ -153,7 +153,7 @@ namespace AlphaECS
         //slow and safe
         public static IEntity Deserialize(this IEntity entity, JSONNode node, Type[] includedTypes = null, Type[] ignoredTypes = null)
         {
-            if(node[TypesKey] == null || node[TypesKey].Count <= 0) { return entity; }
+            if(node == null || node[TypesKey] == null || node[TypesKey].Count <= 0) { return entity; }
 
             for (var i = 0; i < node[TypesKey].Count; i++)
             {

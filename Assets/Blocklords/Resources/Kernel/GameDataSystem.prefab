@@ -53,3 +53,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerDataPrefab: {fileID: 1167216452375896, guid: b8557c80e1b624b0e87b2de2d4d2b7fb,
     type: 2}
+  heroDataPrefab: {fileID: 1167216452375896, guid: f1e66805977444e97a3d44d0a42d5ffb,
+    type: 2}
+  playerIDs: []
+  heroIDs: []
+  SelectedPlayerData:
+    value: {fileID: 0}
