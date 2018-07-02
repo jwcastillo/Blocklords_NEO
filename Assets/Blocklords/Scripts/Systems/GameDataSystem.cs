@@ -25,8 +25,10 @@ public class GameDataSystem : SystemBehaviour
     [SerializeField] private GameObject heroDataPrefab;
 
     //for bootstrapping player entities on load
-    [SerializeField] private string[] playerIDs;
-    [SerializeField] private string[] heroIDs;
+    //[SerializeField] private string[] playerIDs;
+    //[SerializeField] private string[] heroIDs;
+    public string[] playerIDs;
+    public string[] heroIDs;
 
     private IGroup players;
     private IGroup serializableHeroes;
@@ -48,14 +50,15 @@ public class GameDataSystem : SystemBehaviour
         }
 
         json = ObscuredPrefs.GetString(PlayerKeys.HeroIDs);
-        if (string.IsNullOrEmpty(json))
-        {
-            heroIDs = new[] { "default" };
-        }
-        else
-        {
-            heroIDs = JsonHelper.FromJson<string>(json).ToArray();
-        }
+        heroIDs = JsonHelper.FromJson<string>(json).ToArray();
+        //if (string.IsNullOrEmpty(json))
+        //{
+        //    heroIDs = new[] { "default" };
+        //}
+        //else
+        //{
+        //    heroIDs = JsonHelper.FromJson<string>(json).ToArray();
+        //}
 
         players = this.CreateGroup(new HashSet<Type>() { typeof(PlayerDataComponent), });
         serializableHeroes = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(PlayerDataComponent), });

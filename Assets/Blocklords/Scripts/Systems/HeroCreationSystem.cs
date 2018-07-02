@@ -7,13 +7,19 @@ using System;
 using UniRx;
 using Random = UnityEngine.Random;
 using System.Linq;
+using Zenject;
 
 public class HeroCreationSystem : SystemBehaviour
 {
+    [Inject] GameDataSystem GameDataSystem { get; set; }
+
     private IGroup heroes;
     private IGroup players;
 
     [SerializeField] private GameObject heroPrefab;
+    [SerializeField] private Animator heroUIAnimator;
+
+    private int isShowingHash;
 
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
@@ -21,6 +27,8 @@ public class HeroCreationSystem : SystemBehaviour
 
         heroes = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(ViewComponent), });
         //players = this.CreateGroup(new HashSet<Type>() { typeof(PlayerDataComponent), });
+
+        isShowingHash = Animator.StringToHash("IsShowing");
     }
 
     public override void OnEnable()
@@ -55,10 +63,20 @@ public class HeroCreationSystem : SystemBehaviour
                 {
                     //HACK
                     var json = JsonUtility.ToJson(heroComponent);
-                    var hc = PrefabFactory.Instantiate(heroPrefab).GetComponent<HeroComponent>();
+                    var hc = PrefabFactory.Instantiate(heroPrefab, GameDataSystem.transform).GetComponent<HeroComponent>();
                     JsonUtility.FromJsonOverwrite(json, hc);
+
                     //HACK to trigger data subscribers until we've got a better saving and loading scheme
                     hc.ID.SetValueAndForceNotify(heroComponent.ID.Value);
+
+                    //can use tweens later, for now just animate out
+                    heroUIAnimator.SetBool(isShowingHash, false);
+
+                    //HACK - transition to the main scene
+                    Observable.TimerFrame(30).Subscribe(_ =>
+                    {
+                        //EventSystem.Publish(new LoadSceneEvent() {})
+                    }).AddTo(this.Disposer);
                 }
                 previousValue = value;
             }).AddTo(this.Disposer);
