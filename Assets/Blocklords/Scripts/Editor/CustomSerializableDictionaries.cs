@@ -4,4 +4,6 @@ using UnityEditor;
 using UnityEngine;
 
 [CustomPropertyDrawer(typeof(AnimatorIntDelegateTable))]
+[CustomPropertyDrawer(typeof(ClassStatsTable))]
+[CustomPropertyDrawer(typeof(ClassStatsWrapperTable))]
 public class CustomSerializableDictionaries : SerializableDictionaryPropertyDrawer { }

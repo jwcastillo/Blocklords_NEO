@@ -42,10 +42,10 @@ public class HeroSelectionSystem : SystemBehaviour
                 selectableComponent.IsSelected.SetValueAndForceNotify(true);
             }).AddTo(this.Disposer);
 
-            selectableComponent.IsSelected.DistinctUntilChanged().Subscribe(value =>
-            {
-                animator.SetBool(isSelectedHash, value);
-            }).AddTo(this.Disposer).AddTo(selectableComponent.Disposer);
+            //selectableComponent.IsSelected.DistinctUntilChanged().Subscribe(value =>
+            //{
+            //    animator.SetBool(isSelectedHash, value);
+            //}).AddTo(this.Disposer).AddTo(selectableComponent.Disposer);
                                
         }).AddTo(this.Disposer);
     }

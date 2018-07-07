@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_Name: HeroCardsPanelController
+  m_Controller: {fileID: 9100000, guid: 15ab9cbde8df6415d8f0febc392fe8f5, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 4d27e49a4e3d0421fab8ac2a05decb0e, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 185f442ff9d0349a6ad726a17bebe39a, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 4cc0556fc6f5f41189f0b110aaa7e4b1, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c45d541195f2643d499800ea7593c7f8, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: d440f89bd7cf04248ae80df87d3a09cd, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: dcf7dbe7ca1b34edc8213dcf745cd19b, type: 2}
