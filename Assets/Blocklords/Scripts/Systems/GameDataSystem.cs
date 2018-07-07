@@ -154,9 +154,6 @@ public class GameDataSystem : SystemBehaviour
                 var json = JsonHelper.ToJson<string>(heroIDs);
                 ObscuredPrefs.SetString(PlayerKeys.HeroIDs, json);
                 ObscuredPrefs.SetString(PlayerKeys.HeroID + heroComponent.ID.Value, entity.Serialize());
-
-                Debug.Log(entity.Id + " " + entity.Serialize());
-                Debug.Log(JsonUtility.ToJson(heroComponent.ModifierStats) + " " + JsonUtility.ToJson(heroComponent.ModifierStats[0]));
             }).AddTo(this.Disposer);
 
         }).AddTo(this.Disposer);
@@ -187,8 +184,6 @@ public class GameDataSystem : SystemBehaviour
         var entity = PoolManager.GetPool().CreateEntity();
         PrefabFactory.Instantiate(entity, heroDataPrefab, this.transform);
         entity.Deserialize(json);
-
-        Debug.Log(json);
 
         //HACK -> force a change here, because we get an OnChanged() fired when the entity is instantiated...
         //... but not on Deserialization, causing things to get out of sync on initial load

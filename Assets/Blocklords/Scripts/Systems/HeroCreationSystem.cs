@@ -131,9 +131,6 @@ public class HeroCreationSystem : SystemBehaviour
         //HACK
         var json = JsonUtility.ToJson(selectedHero.Value);
 
-        Debug.Log(json);
-        Debug.Log(JsonUtility.ToJson(selectedHero.Value.ModifierStats[0]));
-
         var hc = PrefabFactory.Instantiate(heroPrefab, GameDataSystem.transform).GetComponent<HeroComponent>();
         JsonUtility.FromJsonOverwrite(json, hc);
 
