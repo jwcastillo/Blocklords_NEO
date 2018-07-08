@@ -15,8 +15,7 @@ public class HeroCreationSystem : SystemBehaviour
 {
     [Inject] GameDataSystem GameDataSystem { get; set; }
 
-    private IGroup heroes;
-    private IGroup players;
+    [Inject] private NonSerializableHeroes NonSerializableHeroes { get; set; }
 
     [SerializeField] private GameObject heroPrefab;
 
@@ -38,14 +37,6 @@ public class HeroCreationSystem : SystemBehaviour
     [SerializeField] private TextMeshProUGUI speedText;
     [SerializeField] private TextMeshProUGUI troopsText;
 
-    public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
-    {
-        base.Initialize(eventSystem, poolManager, groupFactory);
-
-        heroes = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(ViewComponent), });
-        //players = this.CreateGroup(new HashSet<Type>() { typeof(PlayerDataComponent), });
-    }
-
     public override void OnEnable()
     {
         base.OnEnable();
@@ -66,22 +57,15 @@ public class HeroCreationSystem : SystemBehaviour
             ConfirmHero();
         }).AddTo(this.Disposer);
 
-        //delay a frame to check whether it's a saved hero or new hero that requires setup
-        heroes.OnAdd().DelayFrame(1).Where(e => !e.HasComponent<PlayerDataComponent>()).Subscribe(entity =>
-        {
-            var heroComponent = entity.GetComponent<HeroComponent>();
-
-            heroComponent.ID.Value = Guid.NewGuid().ToString();
-            heroComponent.Name.Value = "Hero " + heroComponent.ID.Value;
-        }).AddTo(this.Disposer);
-
-
-        heroes.OnAdd().DelayFrame(1).Where(e => e.HasComponent<SelectableComponent>() && !e.HasComponent<PlayerDataComponent>()).Subscribe(entity =>
+        //selectable hero cards
+        NonSerializableHeroes.OnAdd().Where(e => e.HasComponent<SelectableComponent>()).Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
             var selectableComponent = entity.GetComponent<SelectableComponent>();
 
-            //var modifier = ScriptableObject.CreateInstance<Stats>();
+            heroComponent.ID.Value = Guid.NewGuid().ToString();
+            heroComponent.Name.Value = "Hero " + heroComponent.ID.Value;
+
             var modifier = new Stats();
             modifier.Leadership.Value = GetModifier();
             modifier.Strength.Value = GetModifier();
@@ -89,24 +73,14 @@ public class HeroCreationSystem : SystemBehaviour
             modifier.Speed.Value = GetModifier();
             heroComponent.ModifierStats.Add(modifier);
 
-            //var previousValue = selectableComponent.IsSelected.Value;
-
             selectableComponent.IsSelected.Subscribe(value =>
             {
                 if(value)
                 {
                     selectedHero.Value = heroComponent;
-                    //heroCreationPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Disabled);
                     heroCardsPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Disabled);
                     confirmationPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Enabled);
                 }
-
-                //double-click
-                //if(value && previousValue)
-                //{
-                //    ConfirmHero();
-                //}
-                //previousValue = value;
             }).AddTo(this.Disposer);
 
         }).AddTo(this.Disposer);
@@ -116,7 +90,7 @@ public class HeroCreationSystem : SystemBehaviour
     {
         base.OnDisable();
 
-        heroes.Entities.Where(e => !e.HasComponent<PlayerDataComponent>()).ForEachRun(e =>
+        NonSerializableHeroes.Entities.Where(e => !e.HasComponent<PlayerDataComponent>()).ForEachRun(e =>
         {
             Destroy(e.GetComponent<ViewComponent>().Transforms[0]);
         });
@@ -126,8 +100,8 @@ public class HeroCreationSystem : SystemBehaviour
     {
         //HACK
         var json = JsonUtility.ToJson(selectedHero.Value);
-
-        var hc = PrefabFactory.Instantiate(heroPrefab, GameDataSystem.transform).GetComponent<HeroComponent>();
+        var go = PrefabFactory.Instantiate(heroPrefab, GameDataSystem.transform);
+        var hc = go.GetComponent<HeroComponent>();
         JsonUtility.FromJsonOverwrite(json, hc);
 
         //HACK to trigger data subscribers until we've got a better saving and loading scheme
