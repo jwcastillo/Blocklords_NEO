@@ -24,7 +24,7 @@ public class HeroClassStatsSystem : SystemBehaviour
         base.OnEnable();
 
         //delay a frame to check whether it's a saved hero or new hero that requires setup
-        heroes.OnAdd().DelayFrame(1).Where(e => !e.HasComponent<PlayerDataComponent>()).Subscribe(entity =>
+        heroes.OnAdd().Where(e => !e.HasComponent<PlayerDataComponent>()).Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
 

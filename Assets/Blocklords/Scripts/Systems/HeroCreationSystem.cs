@@ -26,8 +26,6 @@ public class HeroCreationSystem : SystemBehaviour
 
     [SerializeField] private Transform confirmationButton;
 
-    private int isShowingHash;
-
     [SerializeField] private List<IntList> modifierGroups = new List<IntList>();
     private List<IntList> selectedGroups = new List<IntList>();
 
@@ -46,8 +44,6 @@ public class HeroCreationSystem : SystemBehaviour
 
         heroes = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(ViewComponent), });
         //players = this.CreateGroup(new HashSet<Type>() { typeof(PlayerDataComponent), });
-
-        isShowingHash = Animator.StringToHash("IsShowing");
     }
 
     public override void OnEnable()

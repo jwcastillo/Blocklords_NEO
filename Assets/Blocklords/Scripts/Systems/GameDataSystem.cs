@@ -7,6 +7,7 @@ using CodeStage.AntiCheat.ObscuredTypes;
 using UniRx;
 using System;
 using System.Linq;
+using Zenject;
 
 public static class PlayerKeys
 {
@@ -17,21 +18,29 @@ public static class PlayerKeys
 
     public static string HeroID = "HeroID";
     public static string HeroIDs = "HeroIDs";
+
+    public static string ItemID = "ItemID";
+    public static string ItemIDs = "ItemIDs";
 }
 
 public class GameDataSystem : SystemBehaviour
 {
+    [Inject] private CorePlayers CorePlayers { get; set; }
+    [Inject] private Heroes Heroes { get; set; }
+    [Inject] private SerializableHeroes SerializableHeroes { get; set; }
+
     [SerializeField] private GameObject playerDataPrefab;
     [SerializeField] private GameObject heroDataPrefab;
+    [SerializeField] private GameObject itemDataPrefab;
 
     //for bootstrapping player entities on load
     //[SerializeField] private string[] playerIDs;
     //[SerializeField] private string[] heroIDs;
     public string[] playerIDs;
     public string[] heroIDs;
+    public string[] itemIDs;
 
-    private IGroup players;
-    private IGroup serializableHeroes;
+    //private IGroup serializableItems;
 
     [SerializeField] private PlayerDataComponentReactiveProperty SelectedPlayerData;
 
@@ -40,28 +49,15 @@ public class GameDataSystem : SystemBehaviour
         base.Initialize(eventSystem, poolManager, groupFactory);
 
         var json = ObscuredPrefs.GetString(PlayerKeys.PlayerIDs);
-        if(string.IsNullOrEmpty(json))
-        {
-            playerIDs = new[] { "default" };
-        }
-        else
-        {
-            playerIDs = JsonHelper.FromJson<string>(json).ToArray();
-        }
+        playerIDs = string.IsNullOrEmpty(json) ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
 
         json = ObscuredPrefs.GetString(PlayerKeys.HeroIDs);
-        heroIDs = JsonHelper.FromJson<string>(json).ToArray();
-        //if (string.IsNullOrEmpty(json))
-        //{
-        //    heroIDs = new[] { "default" };
-        //}
-        //else
-        //{
-        //    heroIDs = JsonHelper.FromJson<string>(json).ToArray();
-        //}
+        heroIDs = string.IsNullOrEmpty(json) ? new[] { "" } : JsonHelper.FromJson<string>(json).ToArray();
 
-        players = this.CreateGroup(new HashSet<Type>() { typeof(PlayerDataComponent), });
-        serializableHeroes = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(PlayerDataComponent), });
+        json = ObscuredPrefs.GetString(PlayerKeys.ItemIDs);
+        itemIDs = string.IsNullOrEmpty(json) ? new[] { "" } : JsonHelper.FromJson<string>(json).ToArray();
+
+        //serializableItems = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(PlayerDataComponent), });
     }
 
     public override void OnEnable()
@@ -69,7 +65,7 @@ public class GameDataSystem : SystemBehaviour
         base.OnEnable();
 
         //HACK + TODO -> remove the delay and check
-        players.OnAdd().DelayFrame(1).Where(entity => !entity.HasComponent<HeroComponent>()).Subscribe(entity =>
+        CorePlayers.OnAdd().Subscribe(entity =>
         {
             var playerDataComponent = entity.GetComponent<PlayerDataComponent>();
 
@@ -84,7 +80,7 @@ public class GameDataSystem : SystemBehaviour
                 //    playerDataComponent.ID.Value = previousValue;
                 //}
 
-                playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
+                playerIDs = CorePlayers.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
                 var json = JsonHelper.ToJson<string>(playerIDs);
                 ObscuredPrefs.SetString(PlayerKeys.PlayerIDs, json);
                 ObscuredPrefs.SetString(PlayerKeys.PlayerID + playerDataComponent.ID.Value, entity.Serialize());
@@ -94,31 +90,29 @@ public class GameDataSystem : SystemBehaviour
 
         }).AddTo(this.Disposer);
 
-        players.OnRemove().Subscribe(entity =>
+        CorePlayers.OnRemove().Subscribe(entity =>
         {
-            playerIDs = players.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
+            playerIDs = CorePlayers.Entities.Select(e => e.GetComponent<PlayerDataComponent>().ID.Value).Distinct().ToArray();
             var json = JsonHelper.ToJson(playerIDs.ToArray());
             ObscuredPrefs.SetString(PlayerKeys.PlayerIDs, json);
         }).AddTo(this.Disposer);
 
         foreach (var id in playerIDs)
-        {
-            CreatePlayer(id);
-        }
+        { CreatePlayer(id); }
 
         foreach (var id in heroIDs)
-        {
-            CreateHero(id);
-        } 
+        { CreateHero(id); }
 
-        var selectedID = ObscuredPrefs.GetString(PlayerKeys.SelectedID);
+        //foreach (var id in itemIDs)
+        //{ CreateItem(id); } 
+
+        var selectedPlayerID = ObscuredPrefs.GetString(PlayerKeys.SelectedID);
         var count = 0;
-        IDisposable getSelectedPlayerAsync = null;
-        getSelectedPlayerAsync = players.OnAdd().TakeWhile(_ => SelectedPlayerData.Value == null).Subscribe(entity =>
+        CorePlayers.OnAdd().TakeWhile(_ => SelectedPlayerData.Value == null).Subscribe(entity =>
         {
             var playerDataComponent = entity.GetComponent<PlayerDataComponent>();
             //if the ids match, or we're at the last player
-            if(playerDataComponent.ID.Value == selectedID || count == playerIDs.Length - 1)
+            if(playerDataComponent.ID.Value == selectedPlayerID || count == playerIDs.Length - 1)
             {
                 SelectedPlayerData.Value = playerDataComponent;
             }
@@ -133,12 +127,12 @@ public class GameDataSystem : SystemBehaviour
 
             getPlayerIDAsync = pdc.ID.DistinctUntilChanged().Subscribe(id =>
             {
-                selectedID = id;
+                selectedPlayerID = id;
                 ObscuredPrefs.SetString(PlayerKeys.SelectedID, id);
             }).AddTo(this.Disposer).AddTo(pdc.Disposer);
         }).AddTo(this.Disposer);
 
-        serializableHeroes.OnAdd().Subscribe(entity =>
+        SerializableHeroes.OnAdd().Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
             var playerDataComponent = entity.GetComponent<PlayerDataComponent>();
@@ -150,7 +144,7 @@ public class GameDataSystem : SystemBehaviour
 
             heroComponent.ID.DistinctUntilChanged().Subscribe(_ =>
             {
-                heroIDs = serializableHeroes.Entities.Select(e => e.GetComponent<HeroComponent>().ID.Value).Distinct().ToArray();
+                heroIDs = SerializableHeroes.Entities.Select(e => e.GetComponent<HeroComponent>().ID.Value).Distinct().ToArray();
                 var json = JsonHelper.ToJson<string>(heroIDs);
                 ObscuredPrefs.SetString(PlayerKeys.HeroIDs, json);
                 ObscuredPrefs.SetString(PlayerKeys.HeroID + heroComponent.ID.Value, entity.Serialize());
@@ -158,9 +152,9 @@ public class GameDataSystem : SystemBehaviour
 
         }).AddTo(this.Disposer);
 
-        serializableHeroes.OnRemove().Subscribe(entity =>
+        SerializableHeroes.OnRemove().Subscribe(entity =>
         {
-            heroIDs = serializableHeroes.Entities.Select(e => e.GetComponent<HeroComponent>().ID.Value).Distinct().ToArray();
+            heroIDs = SerializableHeroes.Entities.Select(e => e.GetComponent<HeroComponent>().ID.Value).Distinct().ToArray();
             var json = JsonHelper.ToJson<string>(heroIDs);
             ObscuredPrefs.SetString(PlayerKeys.HeroIDs, json);
         }).AddTo(this.Disposer);
@@ -188,6 +182,18 @@ public class GameDataSystem : SystemBehaviour
         //HACK -> force a change here, because we get an OnChanged() fired when the entity is instantiated...
         //... but not on Deserialization, causing things to get out of sync on initial load
         entity.GetComponent<HeroComponent>().ID.SetValueAndForceNotify(entity.GetComponent<HeroComponent>().ID.Value);
+    }
+
+    private void CreateItem(string id)
+    {
+        var json = ObscuredPrefs.GetString(PlayerKeys.ItemID + id);
+        var entity = PoolManager.GetPool().CreateEntity();
+        PrefabFactory.Instantiate(entity, itemDataPrefab, this.transform);
+        entity.Deserialize(json);
+
+        //HACK -> force a change here, because we get an OnChanged() fired when the entity is instantiated...
+        //... but not on Deserialization, causing things to get out of sync on initial load
+        //entity.GetComponent<ItemCollectionComponent>().ID.SetValueAndForceNotify(entity.GetComponent<ItemCollectionComponent>().ID.Value);
     }
 
     public override void OnDisable()

@@ -16,13 +16,6 @@ public class HeroComponent : ComponentBehaviour
     public Stats BaseStats;
 
     [Reorderable] public List<Stats> ModifierStats = new List<Stats>();
-    //public List<Equipment> Equipment = new List<Equipment>();
-
-    //public IntReactiveProperty Leadership = new IntReactiveProperty();
-    //public IntReactiveProperty Intelligence = new IntReactiveProperty();
-    //public IntReactiveProperty Strength = new IntReactiveProperty();
-    //public IntReactiveProperty Defense = new IntReactiveProperty();
-    //public IntReactiveProperty Speed = new IntReactiveProperty();
 }
 
 [Serializable]
