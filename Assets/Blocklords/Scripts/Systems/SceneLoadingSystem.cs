@@ -37,6 +37,10 @@ public class SceneLoadingSystem : SystemBehaviour
 
     private IGroup sceneSetups;
 
+#if UNITY_EDITOR //delay to account for multi-scene editing so we don't get scenes loaded multiple times
+    private int frameDelay = 1;
+#endif
+
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
@@ -140,9 +144,9 @@ public class SceneLoadingSystem : SystemBehaviour
 
 
 #if UNITY_EDITOR //delay to account for multi-scene editing so we don't get scenes loaded multiple times
-        sceneSetups.OnAdd().DelayFrame(1).Subscribe(entity =>
+        sceneSetups.OnAdd().DelayFrame(frameDelay).Subscribe(entity =>
 #else
-        SceneSetups.OnAdd().Subscribe(entity =>
+        sceneSetups.OnAdd().Subscribe(entity =>
 #endif
         {
             var setupComponent = entity.GetComponent<SceneSetupComponent>();
@@ -153,7 +157,11 @@ public class SceneLoadingSystem : SystemBehaviour
 
         }).AddTo(this.Disposer);
 
+#if UNITY_EDITOR //delay to account for multi-scene editing so we don't get scenes loaded multiple times
+        EventSystem.OnEvent<LoadSceneEvent>().DelayFrame(frameDelay).Subscribe(e =>
+#else
         EventSystem.OnEvent<LoadSceneEvent>().Subscribe(e =>
+#endif
         {
             if (SceneManager.GetSceneByPath(e.SceneName).isLoaded || SceneManager.GetSceneByName(e.SceneName).isLoaded || scenesToLoad.Any(x => x == e.SceneName))
             { return; }
@@ -222,6 +230,10 @@ public class SceneLoadingSystem : SystemBehaviour
         {
             EventSystem.Publish(new LoadSceneEvent(sceneSetup.path));
         });
+
+#if UNITY_EDITOR //delay to account for multi-scene editing so we don't get scenes loaded multiple times
+        frameDelay = 0;
+#endif
     }
 
     public override void OnDisable()
