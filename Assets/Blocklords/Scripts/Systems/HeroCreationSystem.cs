@@ -17,6 +17,8 @@ public class HeroCreationSystem : SystemBehaviour
 
     [Inject] private NonSerializableHeroes NonSerializableHeroes { get; set; }
 
+    [SerializeField] private MultiSceneSetup heroCreationSetup;
+
     [SerializeField] private GameObject heroPrefab;
 
     [SerializeField] private Animator heroCreationPanelAnimator; //the root canvas, contains the graphic raycaster for the hero cards and confirmation panel
@@ -113,10 +115,10 @@ public class HeroCreationSystem : SystemBehaviour
         confirmationPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Disabled);
 
         //HACK - transition to the main scene
-        //Observable.TimerFrame(30).Subscribe(_ =>
-        //{
-        //    EventSystem.Publish(new LoadSceneEvent() {})
-        //}).AddTo(this.Disposer);
+        Observable.TimerFrame(30).Subscribe(_ =>
+        {
+            EventSystem.Publish(new UnloadSceneEvent(heroCreationSetup.Setups[0].path, false));
+        }).AddTo(this.Disposer);
     }
 
     private int GetModifier()

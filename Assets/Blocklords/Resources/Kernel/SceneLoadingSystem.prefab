@@ -131,12 +131,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db33b06a7579e412089be0591dbee37a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultSetup: {fileID: 11400000, guid: b64d93c1c45044a3aad255ac1098bd9c, type: 2}
-  CanvasRoot: {fileID: 225170908626734582}
+  defaultSetup: {fileID: 11400000, guid: b64d93c1c45044a3aad255ac1098bd9c, type: 2}
+  canvasRoot: {fileID: 225170908626734582}
   FadingState:
     value: 2
-  FadeTime: 1.25
-  FadeDelay: 1
+  fadeTime: 1.25
+  fadeDelay: 1
 --- !u!114 &114735044124665200
 MonoBehaviour:
   m_ObjectHideFlags: 1

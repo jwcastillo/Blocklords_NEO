@@ -13,34 +13,35 @@ using Zenject;
 public class SceneLoadingSystem : SystemBehaviour
 {
     [SerializeField]
-    private MultiSceneSetup DefaultSetup;
-    [SerializeField]
-    private CanvasGroup CanvasRoot;
+    private MultiSceneSetup defaultSetup;
 
     [SerializeField]
-    private ReactiveCollection<string> ScenesToLoad = new ReactiveCollection<string>();
+    private CanvasGroup canvasRoot;
+
     [SerializeField]
-    private ReactiveCollection<string> ScenesToUnload = new ReactiveCollection<string>();
+    private ReactiveCollection<string> scenesToLoad = new ReactiveCollection<string>();
+    [SerializeField]
+    private ReactiveCollection<string> scenesToUnload = new ReactiveCollection<string>();
 
-    private BoolReactiveProperty ReadyToLoad = new BoolReactiveProperty();
+    private BoolReactiveProperty readyToLoad = new BoolReactiveProperty();
 
-    private Tween FadingSequence;
+    private Tween fadingSequence;
     public FadeStateReactiveProperty FadingState;
 
     [SerializeField]
-    private float FadeTime = 1.25f;
+    private float fadeTime = 1.25f;
     [SerializeField]
-    private float FadeDelay = 1f;
+    private float fadeDelay = 1f;
 
-    private Scene ActiveScene;
+    private Scene activeScene;
 
-    private IGroup SceneSetups;
+    private IGroup sceneSetups;
 
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
 
-        SceneSetups = this.CreateGroup(new Type[] { typeof(SceneSetupComponent) });
+        sceneSetups = this.CreateGroup(new Type[] { typeof(SceneSetupComponent) });
     }
 
     public override void OnEnable()
@@ -51,10 +52,10 @@ public class SceneLoadingSystem : SystemBehaviour
         SceneManager.sceneUnloaded += OnSceneUnloaded;
 
         //loading
-        ScenesToLoad.ObserveAdd().Subscribe(e =>
+        scenesToLoad.ObserveAdd().Subscribe(e =>
         {
             //defer until the loading screen is active
-            ReadyToLoad.StartWith(ReadyToLoad.Value).Where(isReady => isReady).FirstOrDefault().Subscribe(_ =>
+            readyToLoad.StartWith(readyToLoad.Value).Where(isReady => isReady).FirstOrDefault().Subscribe(_ =>
             {
                 SceneManager.LoadSceneAsync(e.Value, LoadSceneMode.Additive);
             }).AddTo(this.Disposer);
@@ -91,42 +92,45 @@ public class SceneLoadingSystem : SystemBehaviour
         }).AddTo(this.Disposer);
 
         //unloading
-        ScenesToUnload.ObserveAdd().Subscribe(e =>
+        scenesToUnload.ObserveAdd().Subscribe(e =>
         {
             var scene = SceneManager.GetSceneByPath(e.Value).IsValid() ? SceneManager.GetSceneByPath(e.Value) : SceneManager.GetSceneByName(e.Value);
-            if (scene == ActiveScene)
+            if (scene == activeScene)
             {
-                var defaultScene = SceneManager.GetSceneByPath(DefaultSetup.Setups[0].path).IsValid() ? SceneManager.GetSceneByPath(DefaultSetup.Setups[0].path) : SceneManager.GetSceneByName(DefaultSetup.Setups[0].path);
+                var defaultScene = SceneManager.GetSceneByPath(defaultSetup.Setups[0].path).IsValid() ? SceneManager.GetSceneByPath(defaultSetup.Setups[0].path) : SceneManager.GetSceneByName(defaultSetup.Setups[0].path);
                 SceneManager.SetActiveScene(defaultScene);
             }
 
             //defer until the loading screen is active
-            ReadyToLoad.StartWith(ReadyToLoad.Value).Where(isReady => isReady).FirstOrDefault().Subscribe(_ =>
+            readyToLoad.StartWith(readyToLoad.Value).Where(isReady => isReady).FirstOrDefault().Subscribe(_ =>
             {
                 SceneManager.UnloadSceneAsync(e.Value);
             }).AddTo(this.Disposer);
         }).AddTo(this.Disposer);
 
         //fade in
-        ScenesToLoad.ObserveRemove().Merge(ScenesToUnload.ObserveRemove()).Subscribe(_ =>
+        scenesToLoad.ObserveRemove().Merge(scenesToUnload.ObserveRemove()).Subscribe(_ =>
         {
-            if (ScenesToLoad.Count == 0 && ScenesToUnload.Count == 0)
+            if (scenesToLoad.Count == 0 && scenesToUnload.Count == 0)
             {
-                ReadyToLoad.Value = false;
+                readyToLoad.Value = false;
 
                 Resources.UnloadUnusedAssets();
 
-                if (ActiveScene != null && ActiveScene.IsValid())
+                var mainScene = sceneSetups.Entities.Select(e => e.GetComponent<SceneSetupComponent>())
+                                           .FirstOrDefault().MultiSceneSetup.Setups.Select(s => s).FirstOrDefault();
+                activeScene = SceneManager.GetSceneByPath(mainScene.path);
+                if (activeScene.IsValid() && activeScene.isLoaded)
                 {
-                    SceneManager.SetActiveScene(ActiveScene);
+                    SceneManager.SetActiveScene(activeScene);
                 }
 
                 FadingState.Value = FadeState.FadingIn;
 
-                if (FadingSequence != null)
-                { FadingSequence.Kill(); }
+                if (fadingSequence != null)
+                { fadingSequence.Kill(); }
 
-                FadingSequence = CanvasRoot.DOFade(0f, FadeTime).SetDelay(FadeDelay).OnComplete(() =>
+                fadingSequence = canvasRoot.DOFade(0f, fadeTime).SetDelay(fadeDelay).OnComplete(() =>
                 {
                     SetLoadingScreenActive(false);
                     FadingState.Value = FadeState.FadedIn;
@@ -136,16 +140,12 @@ public class SceneLoadingSystem : SystemBehaviour
 
 
 #if UNITY_EDITOR //delay to account for multi-scene editing so we don't get scenes loaded multiple times
-        SceneSetups.OnAdd().DelayFrame(1).Subscribe(entity =>
+        sceneSetups.OnAdd().DelayFrame(1).Subscribe(entity =>
 #else
         SceneSetups.OnAdd().Subscribe(entity =>
 #endif
         {
-
             var setupComponent = entity.GetComponent<SceneSetupComponent>();
-
-            var mainScene = setupComponent.MultiSceneSetup.Setups.Select(s => s).First();
-            ActiveScene = SceneManager.GetSceneByPath(mainScene.path);
             setupComponent.MultiSceneSetup.Setups.Skip(1).ForEachRun(sceneSetup =>
             {
                 EventSystem.Publish(new LoadSceneEvent(sceneSetup.path));
@@ -155,70 +155,70 @@ public class SceneLoadingSystem : SystemBehaviour
 
         EventSystem.OnEvent<LoadSceneEvent>().Subscribe(e =>
         {
-            if (SceneManager.GetSceneByPath(e.SceneName).isLoaded || SceneManager.GetSceneByName(e.SceneName).isLoaded || ScenesToLoad.Any(x => x == e.SceneName))
+            if (SceneManager.GetSceneByPath(e.SceneName).isLoaded || SceneManager.GetSceneByName(e.SceneName).isLoaded || scenesToLoad.Any(x => x == e.SceneName))
             { return; }
 
             if (e.ShouldFade && FadingState.Value != FadeState.FadedOut)
             {
-                ReadyToLoad.Value = false;
-                ScenesToLoad.Add(e.SceneName);
+                readyToLoad.Value = false;
+                scenesToLoad.Add(e.SceneName);
 
                 if (FadingState.Value != FadeState.FadingOut)
                 {
-                    if (FadingSequence != null)
-                    { FadingSequence.Kill(); }
+                    if (fadingSequence != null)
+                    { fadingSequence.Kill(); }
 
                     FadingState.Value = FadeState.FadingOut;
                     SetLoadingScreenActive(true);
 
-                    FadingSequence = CanvasRoot.DOFade(1f, FadeTime).OnComplete(() =>
+                    fadingSequence = canvasRoot.DOFade(1f, fadeTime).OnComplete(() =>
                     {
-                        ReadyToLoad.Value = true;
+                        readyToLoad.Value = true;
                         FadingState.Value = FadeState.FadedOut;
                     });
                 }
             }
             else
             {
-                ReadyToLoad.Value = true;
-                ScenesToLoad.Add(e.SceneName);
+                readyToLoad.Value = true;
+                scenesToLoad.Add(e.SceneName);
             }
         }).AddTo(this.Disposer);
 
         EventSystem.OnEvent<UnloadSceneEvent>().Subscribe(e =>
         {
             var scene = SceneManager.GetSceneByPath(e.SceneName).IsValid() ? SceneManager.GetSceneByPath(e.SceneName) : SceneManager.GetSceneByName(e.SceneName);
-            if (!scene.IsValid() || !scene.isLoaded || ScenesToUnload.Any(x => x == e.SceneName))
+            if (!scene.IsValid() || !scene.isLoaded || scenesToUnload.Any(x => x == e.SceneName))
             { return; }
 
             if (e.ShouldFade && FadingState.Value != FadeState.FadedOut)
             {
-                ReadyToLoad.Value = false;
-                ScenesToUnload.Add(e.SceneName);
+                readyToLoad.Value = false;
+                scenesToUnload.Add(e.SceneName);
 
                 if (FadingState.Value != FadeState.FadingOut)
                 {
-                    if (FadingSequence != null)
-                    { FadingSequence.Kill(); }
+                    if (fadingSequence != null)
+                    { fadingSequence.Kill(); }
 
                     FadingState.Value = FadeState.FadingOut;
                     SetLoadingScreenActive(true);
 
-                    FadingSequence = CanvasRoot.DOFade(1f, FadeTime).OnComplete(() =>
+                    fadingSequence = canvasRoot.DOFade(1f, fadeTime).OnComplete(() =>
                     {
-                        ReadyToLoad.Value = true;
+                        readyToLoad.Value = true;
                         FadingState.Value = FadeState.FadedOut;
                     });
                 }
             }
             else
             {
-                ReadyToLoad.Value = true;
-                ScenesToUnload.Add(e.SceneName);
+                readyToLoad.Value = true;
+                scenesToUnload.Add(e.SceneName);
             }
         }).AddTo(this.Disposer);
 
-        DefaultSetup.Setups.ForEachRun(sceneSetup =>
+        defaultSetup.Setups.ForEachRun(sceneSetup =>
         {
             EventSystem.Publish(new LoadSceneEvent(sceneSetup.path));
         });
@@ -234,23 +234,23 @@ public class SceneLoadingSystem : SystemBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (ScenesToLoad.Any(x => x == scene.path))
+        if (scenesToLoad.Any(x => x == scene.path))
         {
-            ScenesToLoad.Remove(scene.path);
+            scenesToLoad.Remove(scene.path);
         }
     }
 
     private void OnSceneUnloaded(Scene scene)
     {
-        if (ScenesToUnload.Any(x => x == scene.path))
+        if (scenesToUnload.Any(x => x == scene.path))
         {
-            ScenesToUnload.Remove(scene.path);
+            scenesToUnload.Remove(scene.path);
         }
     }
 
     private void SetLoadingScreenActive(bool isActive)
     {
-        CanvasRoot.gameObject.SetActive(isActive);
+        canvasRoot.gameObject.SetActive(isActive);
     }
 }
 

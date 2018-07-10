@@ -9,8 +9,8 @@ public class MainSceneLoadingSystem : SystemBehaviour
 {
     [Inject] private GameDataSystem GameDataSystem { get; set; }
 
-    [SerializeField] private MultiSceneSetup MainSetup;
-    [SerializeField] private MultiSceneSetup CharacterCreationSetup;
+    [SerializeField] private MultiSceneSetup mainSetup;
+    [SerializeField] private MultiSceneSetup heroCreationSetup;
 
     private IEnumerable<string> scenesToUnload;
 
@@ -18,7 +18,7 @@ public class MainSceneLoadingSystem : SystemBehaviour
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
 
-        scenesToUnload = SceneUtilities.GetScenesToUnload(MainSetup, CharacterCreationSetup);
+        scenesToUnload = SceneUtilities.GetScenesToUnload(mainSetup, heroCreationSetup);
     }
 
     public override void OnEnable()
@@ -27,7 +27,7 @@ public class MainSceneLoadingSystem : SystemBehaviour
 
         if(GameDataSystem.heroIDs.Length <= 0)
         {
-            foreach(var scene in CharacterCreationSetup.Setups)
+            foreach(var scene in heroCreationSetup.Setups)
             {
                 EventSystem.Publish(new LoadSceneEvent(scene.path, true));
             }

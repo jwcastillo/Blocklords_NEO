@@ -15,6 +15,3 @@ MonoBehaviour:
   - isActive: 1
     isLoaded: 1
     path: Assets/Blocklords/Scenes/HeroCreation.unity
-  - isActive: 1
-    isLoaded: 1
-    path: Assets/Blocklords/Scenes/Main.unity
