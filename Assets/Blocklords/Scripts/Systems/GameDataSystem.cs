@@ -14,10 +14,12 @@ public static class PlayerKeys
     public static string PlayerID = "PlayerID";
     public static string PlayerIDs = "PlayerIDs";
 
-    public static string SelectedID = "SelectedID";
+    public static string SelectedPlayerID = "SelectedPlayerID";
 
     public static string HeroID = "HeroID";
     public static string HeroIDs = "HeroIDs";
+
+    public static string SelectedHeroID = "SelectedHeroID";
 
     public static string ItemID = "ItemID";
     public static string ItemIDs = "ItemIDs";
@@ -42,7 +44,8 @@ public class GameDataSystem : SystemBehaviour
 
     //private IGroup serializableItems;
 
-    [SerializeField] private PlayerDataComponentReactiveProperty SelectedPlayerData;
+    public PlayerDataComponentReactiveProperty SelectedPlayerData;
+    public EntityReactiveProperty SelectedHero;
 
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
@@ -106,17 +109,17 @@ public class GameDataSystem : SystemBehaviour
         //foreach (var id in itemIDs)
         //{ CreateItem(id); } 
 
-        var selectedPlayerID = ObscuredPrefs.GetString(PlayerKeys.SelectedID);
-        var count = 0;
+        var selectedPlayerID = ObscuredPrefs.GetString(PlayerKeys.SelectedPlayerID);
+        var playerCount = 0;
         CorePlayers.OnAdd().TakeWhile(_ => SelectedPlayerData.Value == null).Subscribe(entity =>
         {
             var playerDataComponent = entity.GetComponent<PlayerDataComponent>();
             //if the ids match, or we're at the last player
-            if(playerDataComponent.ID.Value == selectedPlayerID || count == playerIDs.Length - 1)
+            if(playerDataComponent.ID.Value == selectedPlayerID || playerCount == playerIDs.Length - 1)
             {
                 SelectedPlayerData.Value = playerDataComponent;
             }
-            count += 1;
+            playerCount += 1;
         }).AddTo(this.Disposer);
 
         IDisposable getPlayerIDAsync = null;
@@ -127,11 +130,12 @@ public class GameDataSystem : SystemBehaviour
 
             getPlayerIDAsync = pdc.ID.DistinctUntilChanged().Subscribe(id =>
             {
-                selectedPlayerID = id;
-                ObscuredPrefs.SetString(PlayerKeys.SelectedID, id);
+                ObscuredPrefs.SetString(PlayerKeys.SelectedPlayerID, id);
             }).AddTo(this.Disposer).AddTo(pdc.Disposer);
         }).AddTo(this.Disposer);
 
+        var selectedHeroID = ObscuredPrefs.GetString(PlayerKeys.SelectedHeroID);
+        var heroCount = 0;
         SerializableHeroes.OnAdd().Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
@@ -150,6 +154,27 @@ public class GameDataSystem : SystemBehaviour
                 ObscuredPrefs.SetString(PlayerKeys.HeroID + heroComponent.ID.Value, entity.Serialize());
             }).AddTo(this.Disposer);
 
+            //if the ids match, or we're at the last hero
+            if (heroComponent.ID.Value == selectedHeroID || heroCount == heroIDs.Length - 1)
+            {
+                SelectedHero.Value = entity;
+            }
+            heroCount += 1;
+
+        }).AddTo(this.Disposer);
+
+        IDisposable getHeroIDAsync = null;
+        SelectedHero.DistinctUntilChanged().Subscribe(heroEntity =>
+        {
+            if (getHeroIDAsync != null)
+            { getHeroIDAsync.Dispose(); }
+
+            var heroComponent = heroEntity.GetComponent<HeroComponent>();
+
+            getHeroIDAsync = heroComponent.ID.DistinctUntilChanged().Subscribe(id =>
+            {
+                ObscuredPrefs.SetString(PlayerKeys.SelectedHeroID, id);
+            }).AddTo(this.Disposer).AddTo(heroComponent.Disposer);
         }).AddTo(this.Disposer);
 
         SerializableHeroes.OnRemove().Subscribe(entity =>
