@@ -52,7 +52,7 @@ public class GameDataSystem : SystemBehaviour
         base.Initialize(eventSystem, poolManager, groupFactory);
 
         var json = ObscuredPrefs.GetString(PlayerKeys.PlayerIDs);
-        playerIDs = string.IsNullOrEmpty(json) ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
+        playerIDs = string.IsNullOrEmpty(json) || JsonHelper.FromJson<string>(json).ToArray().Length <= 0 ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
 
         json = ObscuredPrefs.GetString(PlayerKeys.HeroIDs);
         heroIDs = string.IsNullOrEmpty(json) ? new[] { "" } : JsonHelper.FromJson<string>(json).ToArray();
