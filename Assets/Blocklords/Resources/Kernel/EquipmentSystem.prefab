@@ -21,7 +21,7 @@ GameObject:
   - component: {fileID: 4452649708104128}
   - component: {fileID: 114723576098313504}
   m_Layer: 0
-  m_Name: ItemSetupSystem
+  m_Name: EquipmentSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

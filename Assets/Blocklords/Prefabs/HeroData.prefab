@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 114817764202730372}
   - component: {fileID: 114845911402681532}
   - component: {fileID: 114060716184515520}
-  - component: {fileID: 114530343032127028}
+  - component: {fileID: 114376071828586524}
   m_Layer: 0
   m_Name: HeroData
   m_TagString: Untagged
@@ -72,7 +72,7 @@ MonoBehaviour:
     Speed:
       value: 0
   ModifierStats: []
---- !u!114 &114530343032127028
+--- !u!114 &114376071828586524
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -102,7 +102,7 @@ MonoBehaviour:
   Components:
   - {fileID: 114845911402681532}
   - {fileID: 114060716184515520}
-  - {fileID: 114530343032127028}
+  - {fileID: 114376071828586524}
   Blueprints: []
 --- !u!114 &114845911402681532
 MonoBehaviour:
