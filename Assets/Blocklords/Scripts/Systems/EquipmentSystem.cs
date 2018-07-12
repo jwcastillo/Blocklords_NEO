@@ -13,6 +13,7 @@ public class EquipmentSystem : SystemBehaviour
 {
     //[Inject] private SerializableHeroes SerializableHeroes { get; set; }
     [Inject] private GameDataSystem GameDataSystem { get; set; }
+    [Inject] private StreamSystem StreamSystem { get; set; }
 
     [SerializeField] private GameObject itemPrefab;
 
@@ -47,70 +48,39 @@ public class EquipmentSystem : SystemBehaviour
     {
         base.OnEnable();
 
-        unequippedItemCollections.OnAdd().Subscribe(entity =>
+        StreamSystem.ItemEquippedStream.Subscribe(item =>
         {
-            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
-
-            itemCollectionComponent.Items.ObserveEveryValueChanged(c => c.Count).Subscribe(c =>
+            if (unequippedItemInstanceTable.ContainsKey(item))
             {
-                var removedItems = unequippedItemInstanceTable.Keys.Where(key => !itemCollectionComponent.Items.Contains(key)).ToList();
-                var addedItems = itemCollectionComponent.Items.Where(item => !unequippedItemInstanceTable.ContainsKey(item)).ToList();
+                Destroy(unequippedItemInstanceTable[item]);
+                unequippedItemInstanceTable.Remove(item);
+            }
 
-                foreach(var item in removedItems)
-                {
-                    Destroy(unequippedItemInstanceTable[item]);
-                    unequippedItemInstanceTable.Remove(item);
-                }
+            var go = CreateIcon(item, equippedItemsParents[item.ItemType.Value], equippedItemInstanceTable);
+            go.OnPointerClickAsObservable().Subscribe(_ =>
+            {
+                //HACK
+                GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Remove(item);
+                GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Add(item);
+            }).AddTo(go);
 
-                foreach (var item in addedItems)
-                {
-                    var go = CreateIcon(item, unequippedItemParent, unequippedItemInstanceTable);
-                    //TODO -> split out into separate group.OnAdd()?
-                    go.OnPointerClickAsObservable().Subscribe(_ =>
-                    {
-                        //HACK
-                        var targetCollection = GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>();
-                        targetCollection.Items.Add(item);
-                        itemCollectionComponent.Items.Remove(item);
-                    }).AddTo(go);
-                }
-            }).AddTo(this.Disposer).AddTo(itemCollectionComponent.Disposer);
         }).AddTo(this.Disposer);
 
-        //unequippedItemCollections.OnRemove().Subscribe(entity =>
-        //{
-        //    foreach(var kvp in unequippedItemInstanceTable)
-        //    {
-        //        Debug.Log(kvp.Key == null);
-        //    }
-        //}).AddTo(this.Disposer);
-
-        equippedItemCollections.OnAdd().Subscribe(entity =>
+        StreamSystem.ItemUnequippedStream.Subscribe(item =>
         {
-            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
-
-            itemCollectionComponent.Items.ObserveEveryValueChanged(c => c.Count).Subscribe(c =>
+            if(equippedItemInstanceTable.ContainsKey(item))
             {
-                var removedItems = equippedItemInstanceTable.Keys.Where(key => !itemCollectionComponent.Items.Contains(key)).ToList();
-                var addedItems = itemCollectionComponent.Items.Where(item => !equippedItemInstanceTable.ContainsKey(item)).ToList();
+                Destroy(equippedItemInstanceTable[item]);
+                equippedItemInstanceTable.Remove(item);
+            }
 
-                foreach (var item in removedItems)
-                {
-                    Destroy(equippedItemInstanceTable[item]);
-                    equippedItemInstanceTable.Remove(item);
-                }
-
-                foreach (var item in addedItems)
-                {
-                    var go = CreateIcon(item, equippedItemsParents[item.ItemType.Value], equippedItemInstanceTable);
-                    go.OnPointerClickAsObservable().Subscribe(_ =>
-                    {
-                        var targetCollection = GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>();
-                        targetCollection.Items.Add(item);
-                        itemCollectionComponent.Items.Remove(item);
-                    }).AddTo(go);
-                }
-            }).AddTo(this.Disposer).AddTo(itemCollectionComponent.Disposer);
+            var go = CreateIcon(item, unequippedItemParent, unequippedItemInstanceTable);
+            go.OnPointerClickAsObservable().Subscribe(_ =>
+            {
+                //HACK
+                GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Remove(item);
+                GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Add(item);
+            }).AddTo(go);
         }).AddTo(this.Disposer);
     }
 
