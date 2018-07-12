@@ -64,9 +64,7 @@ public class EquipmentSystem : SystemBehaviour
 
                 foreach (var item in addedItems)
                 {
-                    var go = PrefabFactory.Instantiate(itemPrefab, unequippedItemParent);
-                    unequippedItemInstanceTable.Add(item, go);
-
+                    var go = CreateIcon(item, unequippedItemParent, unequippedItemInstanceTable);
                     //TODO -> split out into separate group.OnAdd()?
                     go.OnPointerClickAsObservable().Subscribe(_ =>
                     {
@@ -104,9 +102,7 @@ public class EquipmentSystem : SystemBehaviour
 
                 foreach (var item in addedItems)
                 {
-                    var go = PrefabFactory.Instantiate(itemPrefab, equippedItemsParents[item.ItemType.Value]);
-                    equippedItemInstanceTable.Add(item, go);
-
+                    var go = CreateIcon(item, equippedItemsParents[item.ItemType.Value], equippedItemInstanceTable);
                     go.OnPointerClickAsObservable().Subscribe(_ =>
                     {
                         var targetCollection = GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>();
@@ -116,6 +112,17 @@ public class EquipmentSystem : SystemBehaviour
                 }
             }).AddTo(this.Disposer).AddTo(itemCollectionComponent.Disposer);
         }).AddTo(this.Disposer);
+    }
+
+    private GameObject CreateIcon(Item item, Transform parent, Dictionary<Item, GameObject> itemsInstanceTable)
+    {
+        var itemIconEntity = PoolManager.GetPool().CreateEntity();
+        var go = PrefabFactory.Instantiate(itemIconEntity, itemPrefab, parent);
+        var itemIconComponent = itemIconEntity.GetComponent<ItemIconComponent>();
+        itemIconComponent.Item.Value = item;
+        itemsInstanceTable.Add(item, go);
+
+        return go;
     }
 }
 

@@ -23,6 +23,13 @@ public class Item
     public EntityReactiveProperty TargetHero = new EntityReactiveProperty();
 }
 
+[Serializable]
+public class ItemReactiveProperty : ReactiveProperty<Item>
+{
+    public ItemReactiveProperty() { }
+    public ItemReactiveProperty(Item initialValue) : base(initialValue) { }
+}
+
 public enum ItemQuality
 {
     Common = 0,

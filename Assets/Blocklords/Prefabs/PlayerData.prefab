@@ -55,7 +55,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Items:
   - ID:
-      value: item1
+      value: Item1
     Name:
       value: item 1
     Description:
@@ -86,10 +86,8 @@ MonoBehaviour:
       value: 0
     ItemQuality:
       value: 0
-    IsEquipped:
-      value: 0
   - ID:
-      value: item2
+      value: Item2
     Name:
       value: item 2
     Description:
@@ -120,10 +118,8 @@ MonoBehaviour:
       value: 1
     ItemQuality:
       value: 0
-    IsEquipped:
-      value: 0
   - ID:
-      value: item3
+      value: Item3
     Name:
       value: item 3
     Description:
@@ -154,10 +150,8 @@ MonoBehaviour:
       value: 2
     ItemQuality:
       value: 0
-    IsEquipped:
-      value: 0
   - ID:
-      value: item4
+      value: Item4
     Name:
       value: item 4
     Description:
@@ -188,10 +182,8 @@ MonoBehaviour:
       value: 3
     ItemQuality:
       value: 0
-    IsEquipped:
-      value: 0
   - ID:
-      value: item5
+      value: Item5
     Name:
       value: item 5
     Description:
@@ -221,8 +213,6 @@ MonoBehaviour:
     ItemType:
       value: 4
     ItemQuality:
-      value: 0
-    IsEquipped:
       value: 0
 --- !u!114 &114817764202730372
 MonoBehaviour:

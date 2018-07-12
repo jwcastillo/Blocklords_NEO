@@ -3587,6 +3587,48 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1049706317}
+--- !u!1 &1088751501
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1088751502}
+  - component: {fileID: 1088751503}
+  m_Layer: 0
+  m_Name: ItemIconSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1088751502
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1088751501}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 1633494868}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1088751503
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1088751501}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afa4103835f974fff9bacb198a93b0ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  iconResourcePrefix: ItemIcons/
+  iconResourceSuffix: 
 --- !u!1 &1114217382
 GameObject:
   m_ObjectHideFlags: 0
@@ -5741,6 +5783,7 @@ Transform:
   m_Children:
   - {fileID: 341846573}
   - {fileID: 901058633}
+  - {fileID: 1088751502}
   m_Father: {fileID: 1965912992}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -6911,6 +6954,12 @@ RectTransform:
   m_PrefabParentObject: {fileID: 224557309924425844, guid: 7996428204c5e4ea6a69d739548ac8ae,
     type: 2}
   m_PrefabInternal: {fileID: 565316632}
+--- !u!114 &1860710434 stripped
+MonoBehaviour:
+  m_PrefabParentObject: {fileID: 114382047026384012, guid: 7996428204c5e4ea6a69d739548ac8ae,
+    type: 2}
+  m_PrefabInternal: {fileID: 565316632}
+  m_Script: {fileID: 11500000, guid: 444437bd5ca7c402fa0635ccb55fb1ee, type: 3}
 --- !u!1 &1886125136
 GameObject:
   m_ObjectHideFlags: 0
@@ -7216,9 +7265,11 @@ MonoBehaviour:
   Systems:
   - {fileID: 341846574}
   - {fileID: 901058634}
+  - {fileID: 1088751503}
   Entities:
   - {fileID: 1632849099}
   - {fileID: 1657663046}
+  - {fileID: 1860710434}
 --- !u!114 &1965912994
 MonoBehaviour:
   m_ObjectHideFlags: 0
