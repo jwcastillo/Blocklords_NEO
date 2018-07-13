@@ -24,7 +24,7 @@ public class EquipmentSystem : SystemBehaviour
     private IGroup unequippedItemCollections;
     private IGroup equippedItemCollections;
 
-    private Dictionary<Item, GameObject> unequippedItemInstanceTable = new Dictionary<Item, GameObject>();
+    private Dictionary<Item, GameObject> inventoryItemInstanceTable = new Dictionary<Item, GameObject>();
     private Dictionary<Item, GameObject> equippedItemInstanceTable = new Dictionary<Item, GameObject>();
 
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
@@ -48,12 +48,13 @@ public class EquipmentSystem : SystemBehaviour
     {
         base.OnEnable();
 
-        StreamSystem.ItemEquippedStream.Subscribe(item =>
+        StreamSystem.ItemEquippedStream.Subscribe(evt =>
         {
-            if (unequippedItemInstanceTable.ContainsKey(item))
+            var item = evt.Item;
+            if (inventoryItemInstanceTable.ContainsKey(item))
             {
-                Destroy(unequippedItemInstanceTable[item]);
-                unequippedItemInstanceTable.Remove(item);
+                Destroy(inventoryItemInstanceTable[item]);
+                inventoryItemInstanceTable.Remove(item);
             }
 
             var go = CreateIcon(item, equippedItemsParents[item.ItemType.Value], equippedItemInstanceTable);
@@ -66,15 +67,16 @@ public class EquipmentSystem : SystemBehaviour
 
         }).AddTo(this.Disposer);
 
-        StreamSystem.ItemUnequippedStream.Subscribe(item =>
+        StreamSystem.ItemAddedToInventoryStream.Subscribe(evt =>
         {
+            var item = evt.Item;
             if(equippedItemInstanceTable.ContainsKey(item))
             {
                 Destroy(equippedItemInstanceTable[item]);
                 equippedItemInstanceTable.Remove(item);
             }
 
-            var go = CreateIcon(item, unequippedItemParent, unequippedItemInstanceTable);
+            var go = CreateIcon(item, unequippedItemParent, inventoryItemInstanceTable);
             go.OnPointerClickAsObservable().Subscribe(_ =>
             {
                 //HACK

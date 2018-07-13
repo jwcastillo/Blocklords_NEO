@@ -7051,6 +7051,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d05a8ebdee3904b268d0fbda19e67ebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  statsText:
+    LeadershipText: {fileID: 1776774530}
+    IntelligenceText: {fileID: 1484669551}
+    StrengthText: {fileID: 587420168}
+    DefenseText: {fileID: 364648432}
+    SpeedText: {fileID: 1000088401}
+    TroopsText: {fileID: 104391572}
 --- !u!1 &1886125136
 GameObject:
   m_ObjectHideFlags: 0

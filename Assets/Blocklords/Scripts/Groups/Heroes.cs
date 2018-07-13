@@ -19,7 +19,7 @@ public class SerializableHeroes : Group
 {
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager)
     {
-        Components = new HashSet<Type> { typeof(HeroComponent), typeof(PlayerDataComponent), };
+        Components = new HashSet<Type> { typeof(HeroComponent), typeof(PlayerDataComponent), typeof(ItemCollectionComponent), };
 
         base.Initialize(eventSystem, poolManager);
     }

@@ -1360,6 +1360,7 @@ MonoBehaviour:
       value: 0
     Speed:
       value: 0
+  modifierStats: []
 --- !u!114 &376993590
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2075,6 +2076,13 @@ MonoBehaviour:
   defenseText: {fileID: 726122828}
   speedText: {fileID: 155776611}
   troopsText: {fileID: 1304238395}
+  statsText:
+    LeadershipText: {fileID: 1684257220}
+    IntelligenceText: {fileID: 370002117}
+    StrengthText: {fileID: 870087506}
+    DefenseText: {fileID: 726122828}
+    SpeedText: {fileID: 155776611}
+    TroopsText: {fileID: 1304238395}
 --- !u!1 &978306758
 GameObject:
   m_ObjectHideFlags: 0
@@ -3164,6 +3172,7 @@ MonoBehaviour:
       value: 0
     Speed:
       value: 0
+  modifierStats: []
 --- !u!114 &1259081136
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4320,6 +4329,7 @@ MonoBehaviour:
       value: 0
     Speed:
       value: 0
+  modifierStats: []
 --- !u!114 &1878817942
 MonoBehaviour:
   m_ObjectHideFlags: 0

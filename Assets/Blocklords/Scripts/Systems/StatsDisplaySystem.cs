@@ -2,32 +2,43 @@
 using System.Collections.Generic;
 using UnityEngine;
 using AlphaECS.Unity;
+using AlphaECS;
 using Zenject;
 using UniRx;
+using TMPro;
+using System;
 
 public class StatsDisplaySystem : SystemBehaviour
 {
+    [Inject] private GameDataSystem GameDataSystem { get; set; }
     [Inject] private StreamSystem StreamSystem { get; set; }
-    [Inject] private SerializableHeroes SerializableHeroes { get; set; }
+
+    [SerializeField] private StatsText statsText;
 
     public override void OnEnable()
     {
         base.OnEnable();
 
-        StreamSystem.ItemEquippedStream.Subscribe(item =>
+        IDisposable updateText = null;
+        GameDataSystem.SelectedHero.DistinctUntilChanged().Subscribe(entity =>
         {
-            foreach(var entity in SerializableHeroes.Entities)
+            if(updateText != null)
+            { updateText.Dispose(); }
+
+            var heroComponent = entity.GetComponent<HeroComponent>();
+            updateText = heroComponent.ModifierStats.ObserveAdd().Select(_ => true)
+                                      .Merge(heroComponent.ModifierStats.ObserveRemove().Select(_ => true))
+                                      .StartWith(true)
+            .Subscribe(_ =>
             {
-                var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
-                var heroComponent = entity.GetComponent<HeroComponent>();
-
-
-            }
+                UpdateText();
+            }).AddTo(this.Disposer).AddTo(heroComponent.Disposer);
         }).AddTo(this.Disposer);
+    }
 
-        StreamSystem.ItemUnequippedStream.Subscribe(item =>
-        {
-
-        }).AddTo(this.Disposer);
+    private void UpdateText()
+    {
+        var heroComponent = GameDataSystem.SelectedHero.Value.GetComponent<HeroComponent>();
+        statsText.Update(heroComponent.BaseStats, heroComponent.ModifierStats);
     }
 }

@@ -31,9 +31,10 @@ public class HeroStatsSystem : SystemBehaviour
             }).AddTo(this.Disposer);
         }).AddTo(this.Disposer);
 
-        StreamSystem.ItemEquippedStream.Subscribe(item =>
+        StreamSystem.ItemEquippedStream.Subscribe(evt =>
         {
-            var entity = GameDataSystem.SelectedHero.Value;
+            var item = evt.Item;
+            var entity = evt.Collection;
             var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
             var heroComponent = entity.GetComponent<HeroComponent>();
 
@@ -43,18 +44,15 @@ public class HeroStatsSystem : SystemBehaviour
             }
         }).AddTo(this.Disposer);
 
-        StreamSystem.ItemUnequippedStream.Subscribe(item =>
+        StreamSystem.ItemUnequippedStream.Subscribe(evt =>
         {
-            foreach (var entity in SerializableHeroes.Entities)
-            {
-                var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
-                var heroComponent = entity.GetComponent<HeroComponent>();
+            var item = evt.Item;
+            var entity = evt.Collection;
 
-                if (heroComponent.ModifierStats.Contains(item.BaseStats))
-                {
-                    heroComponent.ModifierStats.Remove(item.BaseStats);
-                }
-            }
+            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
+            var heroComponent = entity.GetComponent<HeroComponent>();
+
+            heroComponent.ModifierStats.Remove(item.BaseStats);
         }).AddTo(this.Disposer);
     }
 }

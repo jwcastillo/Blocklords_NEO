@@ -9,24 +9,26 @@ using System.Linq;
 
 public class StreamSystem : SystemBehaviour
 {
-    public IObservable<Item> ItemEquippedStream
+    public IObservable<ItemCollectionChangedEvent> ItemEquippedStream
     {
         get
         {
-            return equippedItemCollections.OnAdd().SelectMany(e =>
+            return heroItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
 
-                var previousItems = new List<Item>();
-                var itemStream = itemCollectionComponent.Items.ObserveEveryValueChanged(c => c.Count)
-                    //.Pairwise()
-                    //.StartWith(new Pair<int>(0, 0))
-                    //.Where(pair => pair.Current > pair.Previous)
-                .SelectMany(pair =>
+                var index = 0;
+                var startingItems = itemCollectionComponent.Items.Select(item =>
                 {
-                    var addedItems = itemCollectionComponent.Items.Where(item => !previousItems.Contains(item)).ToList();
-                    previousItems = itemCollectionComponent.Items.ToList();
-                    return addedItems;
+                    var evt = new CollectionAddEvent<Item>(index, item);
+                    index += 1;
+                    return evt;
+                });
+
+                var itemStream = itemCollectionComponent.Items.ObserveAdd().StartWith(startingItems).Select(evt =>
+                {
+                    var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
+                    return itemEquippedEvent;
                 });
 
                 return itemStream;
@@ -34,24 +36,18 @@ public class StreamSystem : SystemBehaviour
         }
     }
 
-    public IObservable<Item> ItemUnequippedStream
+    public IObservable<ItemCollectionChangedEvent> ItemUnequippedStream
     {
         get
         {
-            return unequippedItemCollections.OnAdd().SelectMany(e =>
+            return heroItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
 
-                var previousItems = new List<Item>();
-                var itemStream = itemCollectionComponent.Items.ObserveEveryValueChanged(c => c.Count)
-                    //.Pairwise()
-                    //.StartWith(new Pair<int>(0, 0))
-                    //.Where(pair => pair.Current > pair.Previous)
-                .SelectMany(pair =>
+                var itemStream = itemCollectionComponent.Items.ObserveRemove().Select(evt =>
                 {
-                    var addedItems = itemCollectionComponent.Items.Where(item => !previousItems.Contains(item)).ToList();
-                    previousItems = itemCollectionComponent.Items.ToList();
-                    return addedItems;
+                    var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
+                    return itemEquippedEvent;
                 });
 
                 return itemStream;
@@ -59,8 +55,54 @@ public class StreamSystem : SystemBehaviour
         }
     }
 
-    private IGroup unequippedItemCollections;
-    private IGroup equippedItemCollections;
+    public IObservable<ItemCollectionChangedEvent> ItemAddedToInventoryStream
+    {
+        get
+        {
+            return inventoryItemCollections.OnAdd().SelectMany(e =>
+            {
+                var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
+
+                var index = 0;
+                var startingItems = itemCollectionComponent.Items.Select(item =>
+                {
+                    var evt = new CollectionAddEvent<Item>(index, item);
+                    index += 1;
+                    return evt;
+                });
+
+                var itemStream = itemCollectionComponent.Items.ObserveAdd().StartWith(startingItems).Select(evt =>
+                {
+                    var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
+                    return itemEquippedEvent;
+                });
+
+                return itemStream;
+            });
+        }
+    }
+
+    public IObservable<ItemCollectionChangedEvent> ItemRemovedFromInventoryStream
+    {
+        get
+        {
+            return inventoryItemCollections.OnAdd().SelectMany(e =>
+            {
+                var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
+
+                var itemStream = itemCollectionComponent.Items.ObserveRemove().Select(evt =>
+                {
+                    var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
+                    return itemEquippedEvent;
+                });
+
+                return itemStream;
+            });
+        }
+    }
+
+    private IGroup inventoryItemCollections;
+    private IGroup heroItemCollections;
 
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
@@ -70,12 +112,12 @@ public class StreamSystem : SystemBehaviour
         {
             return e.Components.ObserveEveryValueChanged(_ => !e.HasComponent<HeroComponent>()).ToReactiveProperty();
         };
-        unequippedItemCollections = this.CreateGroup(new HashSet<Type>() { typeof(ItemCollectionComponent) }, doesntHaveHeroComponent);
+        inventoryItemCollections = this.CreateGroup(new HashSet<Type>() { typeof(ItemCollectionComponent) }, doesntHaveHeroComponent);
 
         Func<IEntity, ReactiveProperty<bool>> hasHeroComponent = (e) =>
         {
             return e.Components.ObserveEveryValueChanged(_ => e.HasComponent<HeroComponent>()).ToReactiveProperty();
         };
-        equippedItemCollections = this.CreateGroup(new HashSet<Type>() { typeof(ItemCollectionComponent) }, hasHeroComponent);
+        heroItemCollections = this.CreateGroup(new HashSet<Type>() { typeof(ItemCollectionComponent) }, hasHeroComponent);
     }
 }
