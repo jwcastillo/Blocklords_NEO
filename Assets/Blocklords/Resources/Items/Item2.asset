@@ -9,15 +9,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b84c34c6e7adc4626aa2e78eda1d83c1, type: 3}
-  m_Name: Item3
+  m_Name: Item2
   m_EditorClassIdentifier: 
   Item:
     ID:
-      value: Item3
+      value: Item2
     Name:
-      value: Item 3
+      value: Item 2
     Description:
-      value: 'fancy item # 3'
+      value: 'fancy item # 2'
     BaseStats:
       Leadership:
         value: 0
@@ -26,9 +26,9 @@ MonoBehaviour:
       Strength:
         value: 0
       Defense:
-        value: 0
+        value: 20
       Speed:
-        value: 5
+        value: 0
     MaxStats:
       Leadership:
         value: 0
@@ -37,12 +37,10 @@ MonoBehaviour:
       Strength:
         value: 0
       Defense:
-        value: 0
+        value: 100
       Speed:
-        value: 30
+        value: 0
     ItemType:
-      value: 2
+      value: 1
     ItemQuality:
-      value: 0
-    IsEquipped:
       value: 0

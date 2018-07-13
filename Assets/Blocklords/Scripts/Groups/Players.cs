@@ -15,12 +15,12 @@ public class Players : Group
     }
 }
 
-//TODO -> have this check that it's ONLY player data, not just against HeroComponents
+//TODO -> have this check that it's ONLY player data, not just against HeroComponents?
 public class CorePlayers : Group
 {
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager)
     {
-        Components = new HashSet<Type> { typeof(PlayerDataComponent), };
+        Components = new HashSet<Type> { typeof(PlayerDataComponent), typeof(ItemCollectionComponent), };
 
         Func<IEntity, ReactiveProperty<bool>> hasHeroComponent = (e) =>
         {

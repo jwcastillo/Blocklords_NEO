@@ -5,6 +5,7 @@ using AlphaECS.Unity;
 using UniRx;
 using System;
 using SubjectNerd.Utilities;
+using System.Linq;
 
 public class HeroComponent : ComponentBehaviour
 {
@@ -15,8 +16,25 @@ public class HeroComponent : ComponentBehaviour
 
     public Stats BaseStats;
 
-    [Reorderable] public List<Stats> ModifierStats = new List<Stats>();
-    //public ReactiveCollection<Stats> ModifierStats = new ReactiveCollection<Stats>();
+    [HideInInspector] public ReactiveCollection<Stats> ModifierStats = new ReactiveCollection<Stats>();
+
+#if UNITY_EDITOR
+    [SerializeField] [Reorderable] private List<Stats> modifierStats = new List<Stats>();
+
+    //NOTE -> want to use awake here but for some reason the inspector does not refresh correctly when doing this on startup
+    //private void Awake()
+    private void Start()
+    {
+        ModifierStats.ObserveAdd().Select(_ => true).Merge(ModifierStats.ObserveRemove().Select(_ => true)).StartWith(true).Subscribe(_ =>
+        {
+            modifierStats.Clear();
+            foreach(var stat in ModifierStats)
+            {
+                modifierStats.Add(stat);
+            }
+        }).AddTo(this.Disposer);
+    }
+#endif
 }
 
 [Serializable]
