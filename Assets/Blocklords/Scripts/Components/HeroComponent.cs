@@ -16,6 +16,7 @@ public class HeroComponent : ComponentBehaviour
     public Stats BaseStats;
 
     [Reorderable] public List<Stats> ModifierStats = new List<Stats>();
+    //public ReactiveCollection<Stats> ModifierStats = new ReactiveCollection<Stats>();
 }
 
 [Serializable]

@@ -51,6 +51,7 @@ public class GameDataSystem : SystemBehaviour
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
 
+        //NOTE -> we create a default player profile if non is found
         var json = ObscuredPrefs.GetString(PlayerKeys.PlayerIDs);
         playerIDs = string.IsNullOrEmpty(json) || JsonHelper.FromJson<string>(json).ToArray().Length <= 0 ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
 
