@@ -20,7 +20,7 @@ public class StatsDisplaySystem : SystemBehaviour
         base.OnEnable();
 
         IDisposable updateText = null;
-        GameDataSystem.SelectedHero.DistinctUntilChanged().Subscribe(entity =>
+        GameDataSystem.SelectedHero.DistinctUntilChanged().Where(e => e != null).Subscribe(entity =>
         {
             if(updateText != null)
             { updateText.Dispose(); }

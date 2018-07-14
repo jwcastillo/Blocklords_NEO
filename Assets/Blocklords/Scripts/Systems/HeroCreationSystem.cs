@@ -81,7 +81,7 @@ public class HeroCreationSystem : SystemBehaviour
     {
         base.OnDisable();
 
-        NonSerializableHeroes.Entities.Where(e => !e.HasComponent<PlayerDataComponent>()).ForEachRun(e =>
+        NonSerializableHeroes.Entities.ForEachRun(e =>
         {
             Destroy(e.GetComponent<ViewComponent>().Transforms[0]);
         });
