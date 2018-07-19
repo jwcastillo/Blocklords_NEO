@@ -27,10 +27,14 @@ public class HeroCreationSystem : SystemBehaviour
 
     [SerializeField] private Transform confirmationButton;
 
+    [SerializeField] private GameObject heroCardPrefab;
+    [SerializeField] private Transform heroCardParent;
+    private GameObject heroCardInstance;
+
     [SerializeField] private List<IntList> modifierGroups = new List<IntList>();
     private List<IntList> selectedGroups = new List<IntList>();
 
-    private HeroComponentReactiveProperty selectedHero = new HeroComponentReactiveProperty();
+    private EntityReactiveProperty selectedHero = new EntityReactiveProperty();
 
     [SerializeField] private StatsText statsText;
 
@@ -38,8 +42,26 @@ public class HeroCreationSystem : SystemBehaviour
     {
         base.OnEnable();
 
-        selectedHero.DistinctUntilChanged().Where(hc => hc != null).Subscribe(heroComponent =>
+        selectedHero.DistinctUntilChanged().Where(hc => hc != null).Subscribe(entity =>
         {
+            var heroComponent = entity.GetComponent<HeroComponent>();
+            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
+
+            if(heroCardInstance != null)
+            {
+                Destroy(heroCardInstance);
+            }
+
+            var cardEntity = PoolManager.GetPool().CreateEntity();
+            heroCardInstance = PrefabFactory.Instantiate(cardEntity, heroCardPrefab, heroCardParent);
+
+            var targetItemCollectionComponent = heroCardInstance.AddComponent<ItemCollectionComponent>();
+            var itemData = JsonUtility.ToJson(itemCollectionComponent);
+
+            JsonUtility.FromJsonOverwrite(itemData, targetItemCollectionComponent);
+
+            cardEntity.AddComponent(targetItemCollectionComponent);
+
             statsText.Update(heroComponent.BaseStats, heroComponent.ModifierStats);
         }).AddTo(this.Disposer);
 
@@ -72,13 +94,14 @@ public class HeroCreationSystem : SystemBehaviour
                 var item = itemWrappers[Random.Range(0, itemWrappers.Count)].Item;
                 var clone = item.Clone();
                 itemCollectionComponent.Items.Add(clone);
+                //itemCollectionComponent.Items.Add(item);
             }
 
             selectableComponent.IsSelected.Subscribe(value =>
             {
                 if(value)
                 {
-                    selectedHero.Value = heroComponent;
+                    selectedHero.Value = entity;
                     heroCardsPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Disabled);
                     confirmationPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Enabled);
                 }
@@ -100,13 +123,25 @@ public class HeroCreationSystem : SystemBehaviour
     private void ConfirmHero()
     {
         //HACK
-        var json = JsonUtility.ToJson(selectedHero.Value);
-        var go = PrefabFactory.Instantiate(heroPrefab, GameDataSystem.transform);
-        var hc = go.GetComponent<HeroComponent>();
-        JsonUtility.FromJsonOverwrite(json, hc);
+        //var json = JsonUtility.ToJson(selectedHero.Value);
+        var json = selectedHero.Value.Serialize();
+        var entity = PoolManager.GetPool().CreateEntity();
+        var go = PrefabFactory.Instantiate(entity, heroPrefab, GameDataSystem.transform);
+
+        entity.Deserialize(json);
+        var heroComponent = entity.GetComponent<HeroComponent>();
+        //JsonUtility.FromJsonOverwrite(json, heroComponent);
+
+        //clear out any saved modifiers. we'll we add them later when ItemEquippedStream fires
+        if (heroComponent.ModifierStats.Count > 1)
+        {
+            var initialModifier = heroComponent.ModifierStats[0];
+            heroComponent.ModifierStats.Clear();
+            heroComponent.ModifierStats.Add(initialModifier);
+        }
 
         //HACK to trigger data subscribers until we've got a better saving and loading scheme
-        hc.ID.SetValueAndForceNotify(selectedHero.Value.ID.Value);
+        heroComponent.ID.SetValueAndForceNotify(heroComponent.ID.Value);
 
         //can use tweens later, for now just animate out
         heroCreationPanelAnimator.SetInteger(PanelParameters.State, PanelStates.Disabled);
