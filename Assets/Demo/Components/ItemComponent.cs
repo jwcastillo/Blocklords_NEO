@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using AlphaECS.Unity;
+﻿using AlphaECS.Unity;
 using UniRx;
 
 public class ItemComponent : ComponentBehaviour

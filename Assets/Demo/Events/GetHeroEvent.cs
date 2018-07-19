@@ -1,4 +1,1 @@
-﻿
-public class GetHeroEvent {
-
-}
+﻿public class GetHeroEvent { }

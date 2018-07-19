@@ -1,4 +1,1 @@
-﻿public class PutHeroEvent {
-
-	
-}
+﻿public class PutHeroEvent { }

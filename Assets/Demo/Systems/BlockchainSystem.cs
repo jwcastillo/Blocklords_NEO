@@ -1,9 +1,9 @@
 ﻿using AlphaECS.Unity;
 using System;
 using System.Collections.Generic;
-using AlphaECS;
 
-public class BlockchainSystem : SystemBehaviour {
+public class BlockchainSystem : SystemBehaviour
+{
     enum Net
     {
         MainNet,

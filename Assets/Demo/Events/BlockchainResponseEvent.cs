@@ -1,5 +1,4 @@
-﻿
-public class BlockchainResponseEvent {
-    public bool success;
-
+﻿public class BlockchainResponseEvent
+{
+    public bool IsSuccess;
 }

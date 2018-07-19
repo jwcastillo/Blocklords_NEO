@@ -9,8 +9,8 @@ using Neo.Lux.Cryptography;
 using Neo.Lux.Utils;
 using System.Security.Cryptography;
 
-public class WalletSystem : SystemBehaviour {
-
+public class WalletSystem : SystemBehaviour
+{
     readonly string walletKey = "wallet";
 
     private DoubleReactiveProperty GAS = new DoubleReactiveProperty(0.0);
@@ -21,7 +21,6 @@ public class WalletSystem : SystemBehaviour {
     readonly int blockDelay = 20;       // In Seconds
     private NeoAPI api;
 
-    // Use this for initialization
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
@@ -60,7 +59,6 @@ public class WalletSystem : SystemBehaviour {
         if (LoadWallet())
         {
             checkBalance = Observable.FromCoroutine(CheckBalance).Subscribe();
-            
         }
 
         Observable.EveryApplicationFocus().Subscribe(_ =>
@@ -93,10 +91,8 @@ public class WalletSystem : SystemBehaviour {
                 }
             SaveWallet();
         });
-
     }
 
-    // Create Wallet
     private void CreateWallet()
     {
         if (wallet != null)
@@ -128,7 +124,6 @@ public class WalletSystem : SystemBehaviour {
         EventSystem.Publish(new WalletEvent(this.wallet));
     }
 
-    // Open Wallet
     private void OpenWallet(string privateKeyOrWIF)
     {
         if (privateKeyOrWIF.Length == 52)
@@ -161,12 +156,12 @@ public class WalletSystem : SystemBehaviour {
 
         EventSystem.Publish(new WalletEvent(this.wallet));
     }
+
     // Delete Wallet on the Computer
     // Indicate change of GAS amount
     // Invoke Smart Contract
     // ~~ All methods of all smart contracts ~~
     // Wait For Transaction
-
 
     // Couritine that check the balance on every 20 seconds
     private IEnumerator CheckBalance()
@@ -214,6 +209,7 @@ public class WalletSystem : SystemBehaviour {
 
         return true;
     }
+
     private void SaveWallet()
     {
         if (wallet == null)

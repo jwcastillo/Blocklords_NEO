@@ -1,4 +1,1 @@
-﻿
-public class BuyItemOnMarketEvent {
-
-}
+﻿public class BuyItemOnMarketEvent { }

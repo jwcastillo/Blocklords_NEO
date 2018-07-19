@@ -1,3 +1,1 @@
-﻿public class AttackCityEvent {
-
-}
+﻿public class AttackCityEvent { }

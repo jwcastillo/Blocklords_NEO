@@ -1,4 +1,1 @@
-﻿
-public class RequestWalletEvent {
-
-}
+﻿public class RequestWalletEvent { }

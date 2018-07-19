@@ -1,4 +1,1 @@
-﻿
-public class AttackPlayerEvent {
-
-}
+﻿public class AttackPlayerEvent { }

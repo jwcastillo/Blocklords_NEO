@@ -1,3 +1,1 @@
-﻿public class CreateWalletEvent {
-    
-}
+﻿public class CreateWalletEvent { }

@@ -1,1 +1,9 @@
-﻿public class GasChangeEvent {    public Wallet wallet { get; set; }    public GasChangeEvent(Wallet _wallet)    {        wallet = _wallet;    }}
+﻿public class GasChangeEvent
+{
+    public Wallet Wallet { get; set; }
+
+    public GasChangeEvent(Wallet wallet)
+    {
+        Wallet = wallet;
+    }
+}

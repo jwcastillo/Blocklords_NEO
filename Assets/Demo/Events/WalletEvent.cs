@@ -1,2 +1,9 @@
-﻿public class WalletEvent {    public Wallet wallet { get; private set; }    public WalletEvent(Wallet walletData)    {
-        wallet = walletData;    }}
+﻿public class WalletEvent
+{
+    public Wallet Wallet { get; private set; }
+
+    public WalletEvent(Wallet wallet)
+    {
+        Wallet = wallet;
+    }
+}

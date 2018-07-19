@@ -1,4 +1,1 @@
-﻿
-public class PutItemOnMarketEvent {
-
-}
+﻿public class PutItemOnMarketEvent { }
