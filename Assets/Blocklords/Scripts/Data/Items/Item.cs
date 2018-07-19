@@ -21,6 +21,11 @@ public class Item
 
     //public BoolReactiveProperty IsEquipped = new BoolReactiveProperty();
     public EntityReactiveProperty TargetHero = new EntityReactiveProperty();
+
+    public Item Clone()
+    {
+        return (Item)this.MemberwiseClone();
+    }
 }
 
 [Serializable]

@@ -80,6 +80,12 @@ public class EquipmentSystem : SystemBehaviour
             go.OnPointerClickAsObservable().Subscribe(_ =>
             {
                 //HACK
+                var equippedItem = GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Where(i => i.ItemType.Value == item.ItemType.Value).FirstOrDefault();
+                if(equippedItem != null)
+                {
+                    GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Remove(equippedItem);
+                    GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Add(equippedItem);
+                }
                 GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Remove(item);
                 GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Add(item);
             }).AddTo(go);

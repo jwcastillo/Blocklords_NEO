@@ -9,16 +9,10 @@ using System.Linq;
 
 public class DefaultItemSetupSystem : SystemBehaviour
 {
+    [Inject] private GameDataSystem GameDataSystem { get; set; }
+
     [Inject] private CorePlayers CorePlayers { get; set; }
-
-    [SerializeField] private List<ItemWrapper> defaultItemWrappers = new List<ItemWrapper>();
-
-    public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
-    {
-        base.Initialize(eventSystem, poolManager, groupFactory);
-
-        defaultItemWrappers = Resources.LoadAll<ItemWrapper>("Items").ToList();
-    }
+    [Inject] private SerializableHeroes SerializableHeroes { get; set; }
 
     public override void OnEnable()
     {
@@ -27,10 +21,19 @@ public class DefaultItemSetupSystem : SystemBehaviour
         CorePlayers.OnAdd().Subscribe(entity =>
         {
             var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
-            foreach(var itemWrapper in defaultItemWrappers)
+            foreach(var itemWrapper in GameDataSystem.ItemWrappers)
             {
                 itemCollectionComponent.Items.Add(itemWrapper.Item);
             }
         }).AddTo(this.Disposer);
+
+        //SerializableHeroes.OnAdd().Subscribe(entity =>
+        //{
+        //    var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>();
+        //    foreach (var itemWrapper in GameDataSystem.ItemWrappers)
+        //    {
+        //        itemCollectionComponent.Items.Add(itemWrapper.Item);
+        //    }
+        //}).AddTo(this.Disposer);
     }
 }

@@ -48,11 +48,13 @@ public class HeroCreationSystem : SystemBehaviour
             ConfirmHero();
         }).AddTo(this.Disposer);
 
+        var itemTypes = Enum.GetValues(typeof(ItemType)).Cast<ItemType>();
         //selectable hero cards
         NonSerializableHeroes.OnAdd().Where(e => e.HasComponent<SelectableComponent>()).Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
             var selectableComponent = entity.GetComponent<SelectableComponent>();
+            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>(); //HACK + TODO -> remove this dependency from hero creation
 
             heroComponent.ID.Value = Guid.NewGuid().ToString();
             heroComponent.Name.Value = "Hero " + heroComponent.ID.Value;
@@ -63,6 +65,14 @@ public class HeroCreationSystem : SystemBehaviour
             modifier.Defense.Value = GetModifier();
             modifier.Speed.Value = GetModifier();
             heroComponent.ModifierStats.Add(modifier);
+
+            foreach(var itemType in itemTypes)
+            {
+                var itemWrappers = GameDataSystem.ItemWrappers.Where(iw => iw.Item.ItemType.Value == itemType).ToList();
+                var item = itemWrappers[Random.Range(0, itemWrappers.Count)].Item;
+                var clone = item.Clone();
+                itemCollectionComponent.Items.Add(clone);
+            }
 
             selectableComponent.IsSelected.Subscribe(value =>
             {
