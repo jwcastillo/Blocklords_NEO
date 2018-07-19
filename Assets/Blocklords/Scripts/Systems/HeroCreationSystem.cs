@@ -32,12 +32,7 @@ public class HeroCreationSystem : SystemBehaviour
 
     private HeroComponentReactiveProperty selectedHero = new HeroComponentReactiveProperty();
 
-    [SerializeField] private TextMeshProUGUI leadershipText;
-    [SerializeField] private TextMeshProUGUI intelligenceText;
-    [SerializeField] private TextMeshProUGUI strengthText;
-    [SerializeField] private TextMeshProUGUI defenseText;
-    [SerializeField] private TextMeshProUGUI speedText;
-    [SerializeField] private TextMeshProUGUI troopsText;
+    [SerializeField] private StatsText statsText;
 
     public override void OnEnable()
     {
@@ -45,13 +40,7 @@ public class HeroCreationSystem : SystemBehaviour
 
         selectedHero.DistinctUntilChanged().Where(hc => hc != null).Subscribe(heroComponent =>
         {
-            leadershipText.text = (heroComponent.BaseStats.Leadership.Value + heroComponent.ModifierStats.Select(stat => stat.Leadership.Value).Sum()).ToString();
-            intelligenceText.text = (heroComponent.BaseStats.Intelligence.Value + heroComponent.ModifierStats.Select(stat => stat.Intelligence.Value).Sum()).ToString();
-            strengthText.text = (heroComponent.BaseStats.Strength.Value + heroComponent.ModifierStats.Select(stat => stat.Strength.Value).Sum()).ToString();
-            defenseText.text = (heroComponent.BaseStats.Defense.Value + heroComponent.ModifierStats.Select(stat => stat.Defense.Value).Sum()).ToString();
-            speedText.text = (heroComponent.BaseStats.Speed.Value + heroComponent.ModifierStats.Select(stat => stat.Speed.Value).Sum()).ToString();
-            //troopsText.text = heroComponent.BaseStats.Troops.Value.ToString(); //TODO -> this is a computed value
-
+            statsText.Update(heroComponent.BaseStats, heroComponent.ModifierStats);
         }).AddTo(this.Disposer);
 
         confirmationButton.OnPointerClickAsObservable().Subscribe(_ =>
@@ -59,11 +48,13 @@ public class HeroCreationSystem : SystemBehaviour
             ConfirmHero();
         }).AddTo(this.Disposer);
 
+        var itemTypes = Enum.GetValues(typeof(ItemType)).Cast<ItemType>();
         //selectable hero cards
         NonSerializableHeroes.OnAdd().Where(e => e.HasComponent<SelectableComponent>()).Subscribe(entity =>
         {
             var heroComponent = entity.GetComponent<HeroComponent>();
             var selectableComponent = entity.GetComponent<SelectableComponent>();
+            var itemCollectionComponent = entity.GetComponent<ItemCollectionComponent>(); //HACK + TODO -> remove this dependency from hero creation
 
             heroComponent.ID.Value = Guid.NewGuid().ToString();
             heroComponent.Name.Value = "Hero " + heroComponent.ID.Value;
@@ -74,6 +65,14 @@ public class HeroCreationSystem : SystemBehaviour
             modifier.Defense.Value = GetModifier();
             modifier.Speed.Value = GetModifier();
             heroComponent.ModifierStats.Add(modifier);
+
+            foreach(var itemType in itemTypes)
+            {
+                var itemWrappers = GameDataSystem.ItemWrappers.Where(iw => iw.Item.ItemType.Value == itemType).ToList();
+                var item = itemWrappers[Random.Range(0, itemWrappers.Count)].Item;
+                var clone = item.Clone();
+                itemCollectionComponent.Items.Add(clone);
+            }
 
             selectableComponent.IsSelected.Subscribe(value =>
             {
@@ -92,7 +91,7 @@ public class HeroCreationSystem : SystemBehaviour
     {
         base.OnDisable();
 
-        NonSerializableHeroes.Entities.Where(e => !e.HasComponent<PlayerDataComponent>()).ForEachRun(e =>
+        NonSerializableHeroes.Entities.ForEachRun(e =>
         {
             Destroy(e.GetComponent<ViewComponent>().Transforms[0]);
         });

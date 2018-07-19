@@ -47,12 +47,15 @@ public class GameDataSystem : SystemBehaviour
     public PlayerDataComponentReactiveProperty SelectedPlayerData;
     public EntityReactiveProperty SelectedHero;
 
+    public List<ItemWrapper> ItemWrappers = new List<ItemWrapper>();
+
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
 
+        //NOTE -> we create a default player profile if non is found
         var json = ObscuredPrefs.GetString(PlayerKeys.PlayerIDs);
-        playerIDs = string.IsNullOrEmpty(json) ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
+        playerIDs = string.IsNullOrEmpty(json) || JsonHelper.FromJson<string>(json).ToArray().Length <= 0 ? new[] { "default" } : JsonHelper.FromJson<string>(json).ToArray();
 
         json = ObscuredPrefs.GetString(PlayerKeys.HeroIDs);
         heroIDs = string.IsNullOrEmpty(json) ? new[] { "" } : JsonHelper.FromJson<string>(json).ToArray();
@@ -61,6 +64,8 @@ public class GameDataSystem : SystemBehaviour
         itemIDs = string.IsNullOrEmpty(json) ? new[] { "" } : JsonHelper.FromJson<string>(json).ToArray();
 
         //serializableItems = this.CreateGroup(new HashSet<Type>() { typeof(HeroComponent), typeof(PlayerDataComponent), });
+
+        ItemWrappers = Resources.LoadAll<ItemWrapper>("Items").ToList();
     }
 
     public override void OnEnable()
@@ -167,14 +172,19 @@ public class GameDataSystem : SystemBehaviour
         SelectedHero.DistinctUntilChanged().Subscribe(heroEntity =>
         {
             if (getHeroIDAsync != null)
-            { getHeroIDAsync.Dispose(); }
-
-            var heroComponent = heroEntity.GetComponent<HeroComponent>();
-
-            getHeroIDAsync = heroComponent.ID.DistinctUntilChanged().Subscribe(id =>
             {
-                ObscuredPrefs.SetString(PlayerKeys.SelectedHeroID, id);
-            }).AddTo(this.Disposer).AddTo(heroComponent.Disposer);
+                getHeroIDAsync.Dispose();
+            }
+
+            if(heroEntity != null)
+            {
+                var heroComponent = heroEntity.GetComponent<HeroComponent>();
+
+                getHeroIDAsync = heroComponent.ID.DistinctUntilChanged().Subscribe(id =>
+                {
+                    ObscuredPrefs.SetString(PlayerKeys.SelectedHeroID, id);
+                }).AddTo(this.Disposer).AddTo(heroComponent.Disposer); 
+            }
         }).AddTo(this.Disposer);
 
         SerializableHeroes.OnRemove().Subscribe(entity =>

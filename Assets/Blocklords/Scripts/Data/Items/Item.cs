@@ -19,7 +19,20 @@ public class Item
     public ItemTypeReactiveProperty ItemType;
     public ItemQualityReactiveProperty ItemQuality;
 
-    public BoolReactiveProperty IsEquipped = new BoolReactiveProperty();
+    //public BoolReactiveProperty IsEquipped = new BoolReactiveProperty();
+    public EntityReactiveProperty TargetHero = new EntityReactiveProperty();
+
+    public Item Clone()
+    {
+        return (Item)this.MemberwiseClone();
+    }
+}
+
+[Serializable]
+public class ItemReactiveProperty : ReactiveProperty<Item>
+{
+    public ItemReactiveProperty() { }
+    public ItemReactiveProperty(Item initialValue) : base(initialValue) { }
 }
 
 public enum ItemQuality
@@ -40,7 +53,7 @@ public enum ItemType
 {
     Head = 0,
     Body = 1,
-    Gloves = 2,
+    Hands = 2,
     Shield = 3,
     Weapon = 4,
 }
