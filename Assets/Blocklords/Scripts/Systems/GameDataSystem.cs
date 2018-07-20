@@ -216,7 +216,17 @@ public class GameDataSystem : SystemBehaviour
 
         //HACK -> force a change here, because we get an OnChanged() fired when the entity is instantiated...
         //... but not on Deserialization, causing things to get out of sync on initial load
-        entity.GetComponent<HeroComponent>().ID.SetValueAndForceNotify(entity.GetComponent<HeroComponent>().ID.Value);
+        var heroComponent = entity.GetComponent<HeroComponent>();
+
+        //clear out any saved modifiers. we'll we add them later when ItemEquippedStream fires
+        if(heroComponent.ModifierStats.Count > 1)
+        {
+            var initialModifier = heroComponent.ModifierStats[0];
+            heroComponent.ModifierStats.Clear();
+            heroComponent.ModifierStats.Add(initialModifier);  
+        }
+
+        heroComponent.ID.SetValueAndForceNotify(entity.GetComponent<HeroComponent>().ID.Value);
     }
 
     private void CreateItem(string id)

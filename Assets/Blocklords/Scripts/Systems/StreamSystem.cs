@@ -16,16 +16,7 @@ public class StreamSystem : SystemBehaviour
             return heroItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
-
-                var index = 0;
-                var startingItems = itemCollectionComponent.Items.Select(item =>
-                {
-                    var evt = new CollectionAddEvent<Item>(index, item);
-                    index += 1;
-                    return evt;
-                });
-
-                var itemStream = itemCollectionComponent.Items.ObserveAdd().StartWith(startingItems).Select(evt =>
+                var itemStream = itemCollectionComponent.Items.OnAdd().Select(evt =>
                 {
                     var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
                     return itemEquippedEvent;
@@ -43,8 +34,7 @@ public class StreamSystem : SystemBehaviour
             return heroItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
-
-                var itemStream = itemCollectionComponent.Items.ObserveRemove().Select(evt =>
+                var itemStream = itemCollectionComponent.Items.OnRemove().Select(evt =>
                 {
                     var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
                     return itemEquippedEvent;
@@ -62,16 +52,7 @@ public class StreamSystem : SystemBehaviour
             return inventoryItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
-
-                var index = 0;
-                var startingItems = itemCollectionComponent.Items.Select(item =>
-                {
-                    var evt = new CollectionAddEvent<Item>(index, item);
-                    index += 1;
-                    return evt;
-                });
-
-                var itemStream = itemCollectionComponent.Items.ObserveAdd().StartWith(startingItems).Select(evt =>
+                var itemStream = itemCollectionComponent.Items.OnAdd().Select(evt =>
                 {
                     var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
                     return itemEquippedEvent;
@@ -89,8 +70,7 @@ public class StreamSystem : SystemBehaviour
             return inventoryItemCollections.OnAdd().SelectMany(e =>
             {
                 var itemCollectionComponent = e.GetComponent<ItemCollectionComponent>();
-
-                var itemStream = itemCollectionComponent.Items.ObserveRemove().Select(evt =>
+                var itemStream = itemCollectionComponent.Items.OnRemove().Select(evt =>
                 {
                     var itemEquippedEvent = new ItemCollectionChangedEvent(evt.Value, e);
                     return itemEquippedEvent;

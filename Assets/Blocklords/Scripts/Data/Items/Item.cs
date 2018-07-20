@@ -20,7 +20,7 @@ public class Item
     public ItemQualityReactiveProperty ItemQuality;
 
     //public BoolReactiveProperty IsEquipped = new BoolReactiveProperty();
-    public EntityReactiveProperty TargetHero = new EntityReactiveProperty();
+    //public EntityReactiveProperty TargetHero = new EntityReactiveProperty();
 
     public Item Clone()
     {

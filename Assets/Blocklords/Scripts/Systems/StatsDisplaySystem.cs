@@ -26,8 +26,8 @@ public class StatsDisplaySystem : SystemBehaviour
             { updateText.Dispose(); }
 
             var heroComponent = entity.GetComponent<HeroComponent>();
-            updateText = heroComponent.ModifierStats.ObserveAdd().Select(_ => true)
-                                      .Merge(heroComponent.ModifierStats.ObserveRemove().Select(_ => true))
+            updateText = heroComponent.ModifierStats.OnAdd().Select(_ => true)
+                                      .Merge(heroComponent.ModifierStats.OnRemove().Select(_ => true))
                                       .StartWith(true)
             .Subscribe(_ =>
             {

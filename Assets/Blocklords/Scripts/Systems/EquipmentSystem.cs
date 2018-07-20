@@ -27,6 +27,16 @@ public class EquipmentSystem : SystemBehaviour
     private Dictionary<Item, GameObject> inventoryItemInstanceTable = new Dictionary<Item, GameObject>();
     private Dictionary<Item, GameObject> equippedItemInstanceTable = new Dictionary<Item, GameObject>();
 
+    private List<Item> playerItems
+    {
+        get { return GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items; }
+    }
+
+    private List<Item> heroItems
+    {
+        get { return GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items; }
+    }
+
     public override void Initialize(IEventSystem eventSystem, IPoolManager poolManager, GroupFactory groupFactory)
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
@@ -50,6 +60,8 @@ public class EquipmentSystem : SystemBehaviour
 
         StreamSystem.ItemEquippedStream.Subscribe(evt =>
         {
+            if (evt.Collection != GameDataSystem.SelectedHero.Value) { return; }
+                
             var item = evt.Item;
             if (inventoryItemInstanceTable.ContainsKey(item))
             {
@@ -61,8 +73,8 @@ public class EquipmentSystem : SystemBehaviour
             go.OnPointerClickAsObservable().Subscribe(_ =>
             {
                 //HACK
-                GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Remove(item);
-                GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Add(item);
+                heroItems.Remove(item);
+                playerItems.Add(item);
             }).AddTo(go);
 
         }).AddTo(this.Disposer);
@@ -80,14 +92,15 @@ public class EquipmentSystem : SystemBehaviour
             go.OnPointerClickAsObservable().Subscribe(_ =>
             {
                 //HACK
-                var equippedItem = GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Where(i => i.ItemType.Value == item.ItemType.Value).FirstOrDefault();
+                var equippedItem = heroItems.Where(i => i.ItemType.Value == item.ItemType.Value).FirstOrDefault();
                 if(equippedItem != null)
                 {
-                    GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Remove(equippedItem);
-                    GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Add(equippedItem);
+                    heroItems.Remove(equippedItem);
+                    playerItems.Add(equippedItem);
                 }
-                GameDataSystem.SelectedPlayerData.Value.GetComponent<ItemCollectionComponent>().Items.Remove(item);
-                GameDataSystem.SelectedHero.Value.GetComponent<ItemCollectionComponent>().Items.Add(item);
+
+                playerItems.Remove(item);
+                heroItems.Add(item);
             }).AddTo(go);
         }).AddTo(this.Disposer);
     }
@@ -99,7 +112,6 @@ public class EquipmentSystem : SystemBehaviour
         var itemIconComponent = itemIconEntity.GetComponent<ItemIconComponent>();
         itemIconComponent.Item.Value = item;
         itemsInstanceTable.Add(item, go);
-
         return go;
     }
 }

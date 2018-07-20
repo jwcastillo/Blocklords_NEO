@@ -35,17 +35,25 @@ public class HeroViewSystem : SystemBehaviour
     {
         base.Initialize(eventSystem, poolManager, groupFactory);
 
-        heroViews = this.CreateGroup(new HashSet<Type> { typeof(HeroComponent), typeof(ItemCollectionComponent), typeof(HeroViewComponent) });
+        heroViews = this.CreateGroup(new HashSet<Type> { typeof(ItemCollectionComponent), typeof(HeroViewComponent) });
     }
 
     public override void OnEnable()
     {
         base.OnEnable();
 
+        //HACK + TODO -> these streams really should be merged...
+        //...bug prone as we should listen for changes on collections attached to views from the time the view gets added...
+        //...rather than updating once on add and then relying on the core stream later
         heroViews.OnAdd().Subscribe(entity =>
         {
+            var heroView = entity.GetComponent<HeroViewComponent>();
             var itemCollection = entity.GetComponent<ItemCollectionComponent>();
-            //itemCollection.Items.
+
+            foreach(var item in itemCollection.Items)
+            {
+                UpdateView(heroView, item);
+            }
         }).AddTo(this.Disposer);
 
         StreamSystem.ItemEquippedStream.Subscribe(evt =>
@@ -53,35 +61,7 @@ public class HeroViewSystem : SystemBehaviour
             var heroView = evt.Collection.GetComponent<HeroViewComponent>();
             if (heroView == null) { return; }
 
-            var index = GetIndex(evt.Item.ID.Value);
-            if(evt.Item.ItemType.Value == ItemType.Head)
-            {
-                var path = iconResourcePrefix + "head_0" + index + iconResourceSuffix;
-                SetImage(path, headIDSpritesTable, heroView.HeadImage);
-            }
-            else if(evt.Item.ItemType.Value == ItemType.Body)
-            {
-                var path = iconResourcePrefix + "body_0" + index + iconResourceSuffix;
-                SetImage(path, bodyIDSpritesTable, heroView.BodyImage); 
-            }
-            else if (evt.Item.ItemType.Value == ItemType.Hands)
-            {
-                var path = iconResourcePrefix + "arm_left_0" + index + iconResourceSuffix;
-                SetImage(path, leftArmIDSpritesTable, heroView.LeftArmImage);
-
-                path = iconResourcePrefix + "arm_right_0" + index + iconResourceSuffix;
-                SetImage(path, rightArmIDSpritesTable, heroView.RightArmImage);
-            }
-            else if (evt.Item.ItemType.Value == ItemType.Shield)
-            {
-                var path = iconResourcePrefix + "shield_0" + index + iconResourceSuffix;
-                SetImage(path, shieldIDSpritesTable, heroView.ShieldImage);
-            }
-            else if (evt.Item.ItemType.Value == ItemType.Weapon)
-            {
-                var path = iconResourcePrefix + "weapon_0" + index + iconResourceSuffix;
-                SetImage(path, weaponIDSpritesTable, heroView.WeaponImage);
-            }
+            UpdateView(heroView, evt.Item);
         }).AddTo(this.Disposer);
     }
 
@@ -102,5 +82,38 @@ public class HeroViewSystem : SystemBehaviour
             table.Add(path, sprite);
         }
         image.sprite = table[path];
+    }
+
+    private void UpdateView(HeroViewComponent heroView, Item item)
+    {
+        var index = GetIndex(item.ID.Value);
+        if (item.ItemType.Value == ItemType.Head)
+        {
+            var path = iconResourcePrefix + "head_0" + index + iconResourceSuffix;
+            SetImage(path, headIDSpritesTable, heroView.HeadImage);
+        }
+        else if (item.ItemType.Value == ItemType.Body)
+        {
+            var path = iconResourcePrefix + "body_0" + index + iconResourceSuffix;
+            SetImage(path, bodyIDSpritesTable, heroView.BodyImage);
+        }
+        else if (item.ItemType.Value == ItemType.Hands)
+        {
+            var path = iconResourcePrefix + "arm_left_0" + index + iconResourceSuffix;
+            SetImage(path, leftArmIDSpritesTable, heroView.LeftArmImage);
+
+            path = iconResourcePrefix + "arm_right_0" + index + iconResourceSuffix;
+            SetImage(path, rightArmIDSpritesTable, heroView.RightArmImage);
+        }
+        else if (item.ItemType.Value == ItemType.Shield)
+        {
+            var path = iconResourcePrefix + "shield_0" + index + iconResourceSuffix;
+            SetImage(path, shieldIDSpritesTable, heroView.ShieldImage);
+        }
+        else if (item.ItemType.Value == ItemType.Weapon)
+        {
+            var path = iconResourcePrefix + "weapon_0" + index + iconResourceSuffix;
+            SetImage(path, weaponIDSpritesTable, heroView.WeaponImage);
+        }
     }
 }
