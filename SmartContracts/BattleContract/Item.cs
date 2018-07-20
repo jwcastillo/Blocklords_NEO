@@ -1,10 +1,13 @@
-﻿namespace BattleContract
+﻿using System.Numerics;
+
+namespace BattleContract
 {
     class Item
     {
-        public int maxValue;
-        public int value;
+        public BigInteger Stat;
+        public BigInteger MaxStat;
         public StatType statType;
-        public string id;
+        public BigInteger Quality;
+        public string Id;
     }
 }

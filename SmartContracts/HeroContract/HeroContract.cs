@@ -4,15 +4,13 @@ using Neo.SmartContract.Framework.Services.System;
 using System.Numerics;
 
 /**
- *  Heroes of the Blocklords game.
+ *  HeroContract deals with the Heroes of the Blocklords Game on the Neo Blockchain.
+ *  Heroes can be put or not.
  *  
  *  Version: 1.0
  *  Author: Medet Ahmetson
- *  
- *  Structure of Hero Parameters on the Storage
- *  
- *  Prefix on Storage is User ID
- *  
+ *  Date: 20 Jul. 2017
+ *    
  *  Hero ID is the Key at the Storage, and the Hero Parameters is a value at the Storage
  *  
  *  Hero Parameters are:
@@ -50,13 +48,20 @@ namespace Blocklords
         private static readonly int classLength         = 1;*/
         private static readonly int optionalDataLength = 1;/*
         private static readonly int heroParametersLength = 23;
-        private static readonly int addressLength       = 33;*/
+        private static readonly int addressLength       = 20;*/
 
         // Hero Class is located at the of Hero Parameters
         //private static readonly int parametersLength= HeroContract.classIndex + HeroContract.classLength;
         private static readonly int idLength        = 13;
 
-        private static readonly decimal fee = 0.01m * 100000000;      // 0.01 GAS
+        private static readonly decimal fee = 0.01m;      // 0.01 GAS
+        
+        // To be Called from the other Smartcontracts through the AppCall
+        // Need to add the Verification
+        public static StorageContext GetHeroContext()
+        {
+            return Storage.CurrentContext;
+        }
 
         private static byte[] GetFalseByte(string message)
         {
@@ -71,7 +76,7 @@ namespace Blocklords
 
         public static byte[] Main(string operation, object[] args)
         {
-            Runtime.Log("version:0.1.7");
+            Runtime.Log("version:0.1.8");
 
             bool checkWitness = false;
             if (operation.Equals("putFirstHero") )
@@ -93,24 +98,24 @@ namespace Blocklords
             }
             Runtime.Log("auth_success");
             // @Param Owner Address, Hero ID, Hero Params
-            if (operation.Equals("putFirstHero")) return PutFirst((string)args[0], (string)args[1], (string)args[2]);
+            if (operation.Equals("putFirstHero")) return PutFirst((byte[])args[0], (string)args[1], (string)args[2]);
 
             // @Param Hero ID
-            if (operation.Equals("putHero")) return Put((string)args[0], (string)args[1], (string)args[2]);
+            if (operation.Equals("putHero")) return Put((byte[])args[0], (string)args[1], (string)args[2]);
 
             if (operation.Equals("get")) return Get((string)args[0]);
 
             return GetFalseByte("invalid_operation");
         }
 
+        // OPERATIONS
         private static byte[] Get(string heroId)
         {
             byte[] data = Storage.Get(Storage.CurrentContext, heroId);
             Runtime.Log("Data from Storage: <"+data.AsString()+">");
             return data;
         }
-
-        private static byte[] PutFirst(string address, string heroId, string heroParameters)
+        private static byte[] PutFirst(byte[] address, string heroId, string heroParameters)
         {
             Runtime.Log("put_first_beginning");
             // Validate input
@@ -129,9 +134,7 @@ namespace Blocklords
 
             return PutHero(address, heroId, heroParameters);
         }
-
-
-        private static byte[] Put(string address, string heroId, string heroParameters)
+        private static byte[] Put(byte[] address, string heroId, string heroParameters)
         {
             Runtime.Log("put_beginning");
             // Validate input
@@ -186,11 +189,10 @@ namespace Blocklords
             return false;
         }
 
-
         // Helpers
-        private static byte[] PutHero(string address, string heroId, string heroParameters)
+        private static byte[] PutHero(byte[] address, string heroId, string heroParameters)
         {
-            string value = heroParameters + address;
+            string value = heroParameters + (address.AsString());
             Storage.Put(Storage.CurrentContext, heroId, value);
 
             return GetTrueByte("hero_put");

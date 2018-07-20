@@ -4,15 +4,15 @@ using Neo.SmartContract.Framework.Services.System;
 using System.Numerics;
 
 /**
-*  Items increases the basic Stats of heroes.
+ * The ItemContract works with the Items/Equipments in the Blocklords
+*  Items increase the basic Stats of heroes.
 *  
 *  Version: 1.0
 *  Author: Medet Ahmetson
-*   
+*  Date: 20 Jul. 2018 
 *   
 *  Item parameters are:
-*  
-*  ITEM ID (13)    STAT VALUE (4)  MAX STAT VALUE (4)   STAT TYPE (1) QUALITY (1)  OWNER ADDRESS (33)
+*  ITEM ID (13)    STAT VALUE (4)  MAX STAT VALUE (4)   STAT TYPE (1) QUALITY (1)  OWNER ADDRESS (20)
 */
 namespace Blocklords
 {
@@ -46,6 +46,13 @@ namespace Blocklords
             return new BigInteger(1).AsByteArray();
         }
 
+        // To be called from the external script
+        // TODO: add verification to restrict the calling methods
+        public static StorageContext GetItemContext()
+        {
+            return Storage.CurrentContext;
+        }
+
         public static byte[] Main(string operation, object[] args)
         {
             /*if (operation == "put" || 
@@ -58,7 +65,7 @@ namespace Blocklords
                     return GetFalseByte();
                 }
             }*/
-            Runtime.Log("Version:0.1.5");
+            Runtime.Log("Version:0.1.6");
 
             // @Param Item ID
             if (operation.Equals("get"))                 return Get((string)args[0]);
@@ -67,14 +74,15 @@ namespace Blocklords
             if (operation.Equals("put"))                 return Put((byte[])args[0], (string)args[1], (string)args[2]);
 
             // @Param Item ID, Item Parameters
-            if (operation.Equals("increaseStat"))              return IncreaseStat((string)args[1], new BigInteger((int)args[2]));
+            //if (operation.Equals("increaseStat"))              return IncreaseStat((string)args[1], new BigInteger((int)args[2]));
 
             // @Param Item ID, From Address, To Address
-            if (operation.Equals("transfer"))            return Transfer((byte[])args[0], (string)args[1]);   
+            if (operation.Equals("transfer"))            return Transfer((byte[])args[0], (string)args[1]);
 
             return GetFalseByte("invalid_operation");
         }
 
+        // OPERATIONS
         private static byte[] Get(string itemId)
         {
             // Validate input
@@ -113,7 +121,7 @@ namespace Blocklords
 
             return GetTrueByte("Item was put on the storage");
         }
-        private static byte[] IncreaseStat(string itemId, BigInteger increaseValue)
+        /*private static byte[] IncreaseStat(string itemId, BigInteger increaseValue)
         {
             string item = Storage.Get(Storage.CurrentContext, itemId).AsString();
             // Check does Item exists
@@ -121,11 +129,6 @@ namespace Blocklords
             {
                 return GetFalseByte("item_not_exist");
             }
-            /*if (!IsTransactionFeeIncluded())
-            {
-                Runtime.Log("Error! ransaction fee is not included!");
-                return GetFalseByte();
-            }*/
 
             string valueString = item.Substring(ItemContract.statValueIndex, ItemContract.statValueLength);
             string maxValueString = item.Substring(ItemContract.maxStatValueIndex, ItemContract.maxStatValueLength);
@@ -144,6 +147,7 @@ namespace Blocklords
 
             return PutOnStorage(itemId, newItem);
         }
+        */
         private static byte[] Transfer(byte[] toAddress, string itemId)
         {
             Runtime.Log("Transfering item");
@@ -162,14 +166,12 @@ namespace Blocklords
             }
             Runtime.Log("Parameters are validated");
            
-
             string fromItem = Storage.Get(Storage.CurrentContext, itemId).AsString();
             // Check does Item exist
             if (!IsValidItemParams(fromItem))
             {
                 return GetFalseByte("item_not_exist");
             }
-
 
             string fromAddress = fromItem.Substring(addressIndex, addressLength);
             if (fromAddress.Equals(toAddress))
@@ -179,7 +181,7 @@ namespace Blocklords
 
             Runtime.Log("Item owner will be changed");
 
-            string toItem = fromItem.Substring(0, ItemContract.addressIndex) + toAddress;
+            string toItem = fromItem.Substring(0, ItemContract.addressIndex) + toAddress.AsString();
 
             return ItemContract.PutOnStorage(itemId, toItem);
         }
