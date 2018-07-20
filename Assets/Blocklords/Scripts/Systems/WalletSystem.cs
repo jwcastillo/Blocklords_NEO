@@ -85,10 +85,10 @@ public class WalletSystem : SystemBehaviour
         Observable.OnceApplicationQuit().Subscribe(_ =>
         {
             if (checkBalance != null)
-                {
-                    checkBalance.Dispose();
-                    checkBalance = null;
-                }
+            {
+                checkBalance.Dispose();
+                checkBalance = null;
+            }
             SaveWallet();
         });
     }

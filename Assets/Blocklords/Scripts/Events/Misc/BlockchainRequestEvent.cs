@@ -7,7 +7,7 @@ public class BlockchainRequestEvent
     public string methodName;
 
     public List<HeroComponent> heroArguments;
-    public List<ItemComponent> itemArguments;
+    public List<Item> itemArguments;
     public List<String> stringArguments;
     public List<Boolean> booleanArguments;
     public List<String> walletAddressArguments;

@@ -9,8 +9,12 @@ EditorBuildSettings:
     path: Assets/Blocklords/Scenes/Main.unity
     guid: 149728e2ae8bd4274a34889a844e01d2
   - enabled: 1
+    path: Assets/Blocklords/Scenes/Neo.unity
+    guid: 278f324464c5b489bb161775e3ec92b1
+  - enabled: 1
     path: Assets/Blocklords/Scenes/HeroCreation.unity
     guid: 42693ebfc19f1458490ed85715747866
   - enabled: 1
     path: Assets/Blocklords/Scenes/Default.unity
     guid: 4246f2b633fbe4aee9f7ec1718a6bbac
+  m_configObjects: {}
