@@ -1,8 +1,13 @@
-﻿using BattleContract;
+﻿using BattleContract.Battle;
+using BattleContract.Character;
+using BattleContract.StorageLog;
+using BattleContract.StorageData;
+using BattleContract.GameComponents;
 using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
-using System;
 using System.Numerics;
+using BattleContract.Data;
+using BattleContract.Math;
 
 /**
  *  Battle of the Blocklords game.
@@ -12,28 +17,14 @@ using System.Numerics;
  *
  */
 
-namespace Blocklords
+namespace BattleContract
 {
     class BattleContract : SmartContract
     {
-        private static readonly int XP_1 = 500, XP_2 = 100;
-
-        private static readonly int MY_WIN = 0,
-            ENEMY_WIN = 1, BOTH_LOSE = 2;
-
-        private static readonly int itemIdLength = 13;
-
-        private static readonly int heroParametersLength = HeroParameters.GetIndex(HeroParameterType.Address)
-            + HeroParameters.GetLength(HeroParameterType.Address);
-
-        // Parameters of ItemContract
-        private static readonly int itemParametersLength = ItemParameters.GetIndex(ItemParameterType.Address)
-            + ItemParameters.GetLength(ItemParameterType.Address);
-
-        [Appcall("1231231")]
+        [Appcall("9b82f30aa0f23231d028cfd3d153ea485fcb5344")]
         public static extern StorageContext GetItemContext();
 
-        [Appcall("1231231")]
+        [Appcall("3ebd4f8add4bf73b70c014bb563b58e92322c096")]
         public static extern StorageContext GetHeroContext();
 
 
@@ -65,13 +56,13 @@ namespace Blocklords
             {
                 Hero attacker, defender;
 
-                if (!args.Length.Equals(17)) return GetFalseByte();
+                if (!args.Length.Equals(18)) return GetFalseByte();
                 if (!IsValidHeroId((string)args[0])) return GetFalseByte();
                 if (!IsValidHeroId((string)args[7])) return GetFalseByte();
 
                 // Returns Hero Information: @Id, @parameter caller
-                attacker = GetHeroData((string)args[0], (byte[])args[14]);
-                if (attacker == null) return GetFalseByte();
+                attacker = HeroDataHelper.GetHeroData((string)args[0], (byte[])args[14]);
+                if (attacker.Id == null) return GetFalseByte();
                 attacker.Troops = (int)args[1];
 
                 string[] attackerItemIds = new string[]
@@ -83,13 +74,13 @@ namespace Blocklords
                     (string)args[6]
                 };
                 // Parameters To Items @Item Parameter Lists, @Item Owner
-                attacker.Items = GetItems(attackerItemIds, (byte[])args[14]);
+                attacker.Items = ItemDataHelper.GetItems(attackerItemIds, (byte[])args[14]);
                 //if (attacker.Items == null) return GetFalseByte();
                 attacker.IsNPC = false;
                 attacker.Owner = (byte[])args[14];
 
-                defender = GetHeroData((string)args[7], (byte[])args[15]);
-                if (defender == null) return GetFalseByte();
+                defender = HeroDataHelper.GetHeroData((string)args[7], (byte[])args[15]);
+                if (defender.Id == null) return GetFalseByte();
                 defender.Troops = (int)args[8];
 
                 string[] defenderItemIds = new string[]
@@ -100,12 +91,19 @@ namespace Blocklords
                     (string)args[12],
                     (string)args[13]
                 };
-                defender.Items = GetItems(defenderItemIds, (byte[])args[15]);
+                defender.Items = ItemDataHelper.GetItems(defenderItemIds, (byte[])args[15]);
                 //if (defender.Items == null) return GetFalseByte();
                 defender.IsNPC = SetNPCMode((int)args[17]);
                 defender.Owner = (byte[])args[15];
 
-                return AttackHero(attacker, defender);
+                string battleId = (string)args[18];
+
+                BattleLog battleLog = new BattleLog
+                {
+                    BattleId = battleId
+                };
+
+                return AttackHero(battleLog, attacker, defender);
             }
 
             // @Param Hero ID
@@ -172,147 +170,62 @@ namespace Blocklords
          * 
          */
 
-        private static BigInteger DamageCalculation(BigInteger myStrength, BigInteger myDefense, BigInteger mySpeed, BigInteger enemyDefense, BigInteger enemySpeed, int advantage, int cityDefence = 1)
+        
+        private static byte[] AttackHero(BattleLog battleLog, Hero my, Hero enemy)
         {
-            BigInteger damage = myStrength * (1 - myDefense / (XP_1 + enemyDefense)) * (mySpeed / (enemySpeed + XP_2)) * advantage * (1 - cityDefence);
-            return damage;
+            BigInteger myAttack = Battle.Helper.CalculateDamage(my, enemy);
+            BigInteger enemyAttack = Battle.Helper.CalculateDamage(enemy, my);
+
+            BigInteger enemyRemainTroops = Battle.Helper.AcceptDamage(myAttack, enemy.Troops);
+            BigInteger myRemainTroops = Battle.Helper.AcceptDamage(enemyAttack, my.Troops);
+
+            BattleResult battleResult = Battle.Helper.CalculateBattleResult(my.Troops, myRemainTroops, enemy.Troops, enemyRemainTroops);
+
+            StorageLog.Helper.AddToLog(battleLog, battleResult, myRemainTroops, enemyRemainTroops);
+
+            if (battleResult.Equals(BattleResult.BOTH_LOSE))
+            {
+                StorageLog.Helper.LogBattleResult(battleLog, my, enemy);
+                Runtime.Log("both_lose");
+                return GetFalseByte();
+            }
+
+            return RewardWinner(battleLog, my, enemy);
         }
 
-        private static BigInteger CalculateDamage(Hero my, Hero enemy)
+        public static byte[] RewardWinner(BattleLog battleLog, Hero my, Hero enemy)
         {
-            // Get the Hero Parameters
-            // Get the Item Parameters
-            BigInteger myStrength = Hero.CalculateStat(StatType.Strength, my);
-            BigInteger myDefense = Hero.CalculateStat(StatType.Defense, my);
-            BigInteger mySpeed = Hero.CalculateStat(StatType.Speed, my);
-            BigInteger enemyDefense = Hero.CalculateStat(StatType.Defense, enemy);
-            BigInteger enemySpeed = Hero.CalculateStat(StatType.Speed, enemy);
-            int advantage = Class.GetAdvantage(my.Class, enemy.Class);
+            Hero winner = my, loser = enemy;
 
-            return DamageCalculation(myStrength, myDefense, mySpeed, enemyDefense, enemySpeed, advantage);
-        }
-        private static byte[] AttackHero(Hero my, Hero enemy)
-        {
-            BigInteger myAttack = CalculateDamage(my, enemy);
-            BigInteger enemyAttack = CalculateDamage(enemy, my);
-
-            BigInteger enemyRemainTroops = AcceptDamage(myAttack, enemy.Troops);
-            BigInteger myRemainTroops = AcceptDamage(enemyAttack, my.Troops);
-
-            int battleResult = CalculateBattleResult(my.Troops, myRemainTroops, enemy.Troops, enemyRemainTroops);
-            if (battleResult.Equals(BattleContract.MY_WIN))
+            if (battleLog.battleResult.Equals(BattleResult.ENEMY_WIN))
             {
-                return RewardWinner(my, myRemainTroops, enemy, enemyRemainTroops);
+                winner = enemy;
+                loser = my;
             }
-            if (battleResult.Equals(BattleContract.ENEMY_WIN))
+
+            int[] randomItemIndexes = new int[0];
+            if (!winner.IsNPC)
             {
-                return RewardWinner(enemy, enemyRemainTroops, my, myRemainTroops);
+                randomItemIndexes = Math.Helper.SelectRandomNumbers(winner.Items.Length);
+                ItemIncreasing[] itemIncreasings = IncreasingTable.Get();
+                BattleType battleType = Battle.Helper.GetBattleType(winner.IsNPC, loser.IsNPC);
+                battleLog.battleType = battleType;
+
+                for (int i = 0; i < randomItemIndexes.Length; i++)
+                {
+                    int increaseValue = Battle.Helper.GetIncreaseValue(itemIncreasings, winner.Items[i], battleType);
+
+                    StorageLog.Helper.AddIncreasedItem(battleLog, winner.Items[i].Id, winner.Items[i].Stat.AsString(), increaseValue);
+
+                    Battle.Helper.IncreaseStat(winner.Items[i], increaseValue, winner.Owner);
+                }
             }
-            LogBattleResultBothLose(my, myRemainTroops, enemy, enemyRemainTroops);
-            //Storage.Put(Storage.CurrentContext, heroId, heroParams);
-            //Runtime.Notify(new object[] { "Address has returned from the blockchain storage" });
+
+            StorageLog.Helper.LogBattleResult(battleLog, my, enemy);
             return GetFalseByte();
         }
-
-        private static BigInteger AcceptDamage(BigInteger damage, int troops)
-        {
-            BigInteger remainedTroops = new BigInteger(troops) - damage;
-            if (troops < 0) return 0;
-
-            return remainedTroops;
-        }
-        /**
-         * Return Result:
-         * 0 - no one win or lose
-         * 1 - win first hero
-         * 2 - win second hero
-         * 3 - both of the heroes lose
-         */
-        private static int CalculateBattleResult(BigInteger myTroops, BigInteger myRemained, BigInteger enemyTroops, BigInteger enemyRemained)
-        {
-            BigInteger myPercent = BigInteger.Divide(myTroops, 100);
-            BigInteger myRemainedPercents = BigInteger.Divide(myRemained, myPercent);
-
-            BigInteger enemyPercent = BigInteger.Divide(myTroops, 100);
-            BigInteger enemyRemainedPercents = BigInteger.Divide(enemyRemained, enemyPercent);
-
-            if (enemyRemainedPercents < 30)
-            {
-                if (myRemainedPercents >= 30)
-                {
-                    return BattleContract.MY_WIN;
-                } else
-                {
-                    return BattleContract.BOTH_LOSE;
-                }
-            }
-            if (myRemainedPercents < 30)
-            {
-                if (enemyRemainedPercents >= 30)
-                {
-                    return BattleContract.ENEMY_WIN;
-                }
-                else
-                {
-                    return BattleContract.BOTH_LOSE;
-                }
-            }
-
-            if (myRemainedPercents.Equals(enemyRemainedPercents))
-            {
-                return BattleContract.BOTH_LOSE;
-            }
-
-            if (myRemainedPercents > enemyRemainedPercents)
-            {
-                return BattleContract.MY_WIN;
-            }
-            // else
-            return BattleContract.ENEMY_WIN;
-        }
-
-        private static byte[] RewardWinner(Hero winner, BigInteger winnerRemainedTroops, Hero loser, BigInteger loserRemainedTroops)
-        {
-            int[] randomItemIndexes = PickRandomItemIndexes(0, winner.Items.Length - 1);
 
         
-            for(int i=0; i<randomItemIndexes.Length; i++)
-            {
-                int increaseValue = GetIncreaseValue(winner.Items[i]);
-                IncreaseStat(winner.Items[i], increaseValue);
-            }
-
-            LogBattleResult(winner, winnerRemainedTroops, loser, loserRemainedTroops);
-            return GetFalseByte();
-        }
-        private static int GetRandomItemsAmount(int itemsAmount)
-        {
-            Header header = Blockchain.GetHeader(Blockchain.GetHeight());
-            ulong randomNumber = header.ConsensusData;
-            return (int)(randomNumber % (uint)(itemsAmount - 1) + 1);
-        }
-        private static int[] PickRandomItemIndexes(int minIndex, int maxIndex)
-        {
-            int amount = GetRandomItemsAmount(maxIndex + 1);
-            int[] numbers = new int[amount];
-            return numbers;
-        }
-        private static int GetIncreaseValue(Item item)
-        {
-            return 0;
-        }
-        private static void IncreaseStat(Item item, int increaseValue)
-        {
-
-        }
-        private static void LogBattleResult(Hero winner, BigInteger winnerRemainedTroops, Hero loser, BigInteger loserRemainedTroops)
-        {
-
-        }
-        private static void LogBattleResultBothLose(Hero my, BigInteger myRemainedTroops, Hero enemy, BigInteger enemyRemainedTroops)
-        {
-
-        }
 
         /**
          *  Checks the item id. Item ID's length should be exactly 15.
@@ -321,90 +234,7 @@ namespace Blocklords
          */
         private static bool IsValidHeroId(string itemId)
         {
-            return itemId.Length.Equals(HeroParameters.IdLength);
-        }
-
-        private static Item GetItem(string itemId, byte[] address)
-        {
-            StorageContext storageContext = GetItemContext();
-            string parameters = Storage.Get(storageContext, itemId.AsByteArray()).AsString();
-            if (!parameters.Length.Equals(BattleContract.itemParametersLength))
-            {
-                return null;
-            }
-            if (!parameters.EndsWith(address.ToString()))
-            {
-                return null;
-            }
-
-            Item item = new Item
-            {
-                Id = itemId,
-                Stat = ItemParameters.GetValue(ItemParameterType.Stat, parameters),
-                MaxStat = ItemParameters.GetValue(ItemParameterType.MaxStat, parameters),
-                statType = ItemParameters.GetStat(parameters),
-                Quality = ItemParameters.GetValue(ItemParameterType.Quality, parameters)
-            };
-            return item;
-        }
-        private static Item[] GetItems(string[] ids, byte[] address)
-        {
-            Item[] items;
-            int itemsNum = 5;
-            // Decide How Many Items were Attached to Hero
-            for (int i=1; i<ids.Length; i++)
-            {
-                if (ids[i].Length.Equals(itemIdLength))
-                {
-                    itemsNum = i + 1;
-                }
-            }
-
-            // Return Item By Id
-            items = new Item[itemsNum];
-            for (int i=0; i<itemsNum; i++)
-            {
-                Item item = GetItem(ids[i], address);
-                if (item == null)
-                {
-                    return null;
-                } else
-                {
-                    items[i] = item;
-                }
-            }
-
-            return items;
-        }
-
-        private static Hero GetHeroData(string heroId, byte[] address)
-        {
-            StorageContext storageContext = GetHeroContext();
-            string parameters = Storage.Get(storageContext, heroId.AsByteArray()).AsString();
-            if (!parameters.Length.Equals(BattleContract.heroParametersLength))
-            {
-                return null;
-            }
-            if (!parameters.EndsWith(address.AsString()))
-            {
-                return null;
-            }
-
-            Hero hero = new Hero
-            {
-                Id              = heroId,
-                Stats      = new Stat[5]{
-                    new Stat(StatType.Leadership, HeroParameters.GetValue(HeroParameterType.Leadership, parameters)),
-                    new Stat(StatType.Strength, HeroParameters.GetValue(HeroParameterType.Strength, parameters)),
-                    new Stat(StatType.Strength, HeroParameters.GetValue(HeroParameterType.Speed, parameters)),
-                    new Stat(StatType.Strength, HeroParameters.GetValue(HeroParameterType.Intelligence, parameters)),
-                    new Stat(StatType.Strength, HeroParameters.GetValue(HeroParameterType.Defence, parameters))
-                },
-                Class           = HeroParameters.GetClass(parameters)
-     
-            };
-
-            return hero;
+            return itemId.Length.Equals(HeroDataHelper.IdLength);
         }
 
         private static bool SetNPCMode(int npcInt)
@@ -415,6 +245,5 @@ namespace Blocklords
             }
             return true;
         }
-
     }
 }
