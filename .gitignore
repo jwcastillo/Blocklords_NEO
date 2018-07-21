@@ -32,3 +32,18 @@ sysinfo.txt
 # Builds
 *.apk
 *.unitypackage
+SmartContracts/BattleContract/obj/
+
+SmartContracts/HeroContract/obj/
+
+SmartContracts/ItemContract/obj/
+
+SmartContracts/Merchant/obj/
+
+SmartContracts/ItemContract/bin/
+
+SmartContracts/BattleContract/bin/
+
+SmartContracts/HeroContract/bin/
+
+SmartContracts/MerchantContract/bin/
