@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using UniRx;
 using UnityEngine;
 using Zenject;
+using AlphaECS.Unity;
 
-public class Testing : MonoBehaviour {
-
+public class Testing : ComponentBehaviour
+{
     public bool requestWallet = false;
     public bool createWallet = false;
     public bool openWallet = false;
@@ -30,74 +31,72 @@ public class Testing : MonoBehaviour {
 
     public readonly byte[] itemOwner = "AK2nJJpJr6o664CWJKi1QRXjqeic2zRp8y".ToScriptHash();
 
-    [Inject]
-    public IEventSystem eventSystem;
-
-	// Use this for initialization
-	void Start () {
-        Debug.Log(eventSystem);
+	private void Start ()
+    {
+        Debug.Log(EventSystem);
         // Listener for Gas Change event
         // Send Gas.
         // Request of Wallet
-        eventSystem.OnEvent<GasChangeEvent>().Subscribe(_ =>
+        EventSystem.OnEvent<GasChangeEvent>().Subscribe(evt =>
         {
             Debug.Log("GAS CHANGE EVENT");
-            DebugWallet(_.wallet);
+            DebugWallet(evt.Wallet);
         });
 
         // Listener for Blockchain Error event.
         // Debug.Error(Message);
-        eventSystem.OnEvent<WalletTransferedEvent>().Subscribe(_ =>
+        EventSystem.OnEvent<WalletTransferedEvent>().Subscribe(evt =>
         {
-            Debug.LogError("Wallet error: "+_.message);
+            Debug.LogError("Wallet error: "+evt.message);
         });
 
         // Listener for Wallet Event
         // Debug Wallet information
-        eventSystem.OnEvent<WalletEvent>().Subscribe(_ =>
+        EventSystem.OnEvent<WalletEvent>().Subscribe(evt =>
         {
             Debug.Log("RECEIVE WALLET EVENT");
-            DebugWallet(_.wallet);
+            DebugWallet(evt.Wallet);
         });
 
-        eventSystem.OnEvent<HeroTransferedEvent>().Subscribe(e =>
+        EventSystem.OnEvent<HeroTransferedEvent>().Subscribe(evt =>
         {
-            if (e.isSuccess)
+            if (evt.isSuccess)
             {
                 Debug.Log("Hero was put on Blockchain successfully");
 
             } else {
-                Debug.LogError(e.message);
+                Debug.LogError(evt.message);
             }
             
         });
-        eventSystem.OnEvent<ItemTransferedEvent>().Subscribe(e =>
+        EventSystem.OnEvent<ItemTransferedEvent>().Subscribe(evt =>
         {
-            if (e.isSuccess)
+            if (evt.isSuccess)
             {
                 Debug.Log("Item was put on Blockchain successfully");
 
             }
             else
             {
-                Debug.LogError(e.message);
+                Debug.LogError(evt.message);
             }
 
         });
     }
 	
-	// Update is called once per frame
-	void Update () {
+	private void Update ()
+    {
 		if (this.requestWallet)
         {
             this.requestWallet = false;
             Debug.Log("Requesting Wallet Information");
-            this.eventSystem.Publish(new RequestWalletEvent());
-        } else if (this.createWallet)
+            EventSystem.Publish(new RequestWalletEvent());
+        }
+        else if (this.createWallet)
         {
             this.createWallet = false;
             Debug.Log("Creating Wallet");
-            this.eventSystem.Publish(new CreateWalletEvent());
+            EventSystem.Publish(new CreateWalletEvent());
         }
         else if (this.openWallet)
         {
@@ -109,11 +108,12 @@ public class Testing : MonoBehaviour {
                 return;
             }
 
-            this.eventSystem.Publish(new OpenWalletEvent(this.privateKeyOrWIF));
+            EventSystem.Publish(new OpenWalletEvent(this.privateKeyOrWIF));
 
             Debug.Log("Open the Wallet");
             this.privateKeyOrWIF = "";
-        } else if (this.putHero)
+        }
+        else if (this.putHero)
         {
             this.putHero = false;
             HeroComponent heroComponent = new HeroComponent();
@@ -127,35 +127,35 @@ public class Testing : MonoBehaviour {
             heroComponent.BaseStats = stats;
             heroComponent.Class = new HeroClassReactiveProperty(HeroClass.Ranger);
 
-            this.eventSystem.Publish(new PutHeroEvent(heroComponent, true));
-        } else if (this.createItem)
+            EventSystem.Publish(new PutHeroEvent(heroComponent, true));
+        }
+        else if (this.createItem)
         {
             this.createItem = false;
             Item item = new Item();
             item.ID = new StringReactiveProperty(itemId.PadLeft(13, '0'));
-            item.BaseStats = new StatsReactiveProperty();
-            item.BaseStats.Value = statValue;
-            item.MaxStats = new StatsReactiveProperty();
-            item.MaxStats.Value = maxStatValue;
+            item.BaseStats = statValue;
+            item.MaxStats = maxStatValue;
             item.Name = new StringReactiveProperty("Item #" + itemId.ToString());
             item.ItemType = new ItemTypeReactiveProperty(itemType);
             item.ItemQuality = new ItemQualityReactiveProperty(itemQuality);
 
-            this.eventSystem.Publish(new CreateItemEvent(item));
-        } else if (this.buyItem)
+            EventSystem.Publish(new CreateItemEvent(item));
+        }
+        else if (this.buyItem)
         {
             this.buyItem = false;
             Item item = new Item();
             item.ID = new StringReactiveProperty(buyingItemId.PadLeft(13, '0'));
             MarketItem marketItem = new MarketItem(item, new Decimal(itemPrice), itemOwner);
 
-            this.eventSystem.Publish(new BuyItemEvent(marketItem));
+            EventSystem.Publish(new BuyItemEvent(marketItem));
         }
     }
 
     private void DebugWallet(Wallet wallet)
     {
-        Debug.Log("The " + wallet.keys.address + " wallet has a " + wallet.GAS + " GAS!");
-        Debug.Log("Private Key: " + wallet.keys.PrivateKey.ToString());
+        //Debug.Log("The " + wallet.keys.address + " wallet has a " + wallet.GAS + " GAS!");
+        //Debug.Log("Private Key: " + wallet.keys.PrivateKey.ToString());
     }
 }

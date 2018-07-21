@@ -12,7 +12,7 @@ public class NeoBlocklordsRpc : NeoRPC
 
     protected override string GetRPCEndpoint()
     {
-        return $"http://localhost:{Port}";
+        return $"http://localhost:{port}";
     }
 
     private void LogData(DataNode node, int ident = 0)

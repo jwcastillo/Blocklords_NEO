@@ -1,5 +1,5 @@
-﻿public class PutHeroEvent {
-
+﻿public class PutHeroEvent
+{
     public HeroComponent heroComponent;
     public bool firstHero = false;
 	
