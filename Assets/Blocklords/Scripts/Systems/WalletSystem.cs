@@ -13,7 +13,7 @@ public class WalletSystem : SystemBehaviour
 {
     readonly string walletKey = "wallet";
 
-    private DoubleReactiveProperty GAS = new DoubleReactiveProperty(0.0);
+    private DecimalReactiveProperty GAS = new DecimalReactiveProperty(0);
     private Wallet wallet;
     private KeyPair keys;
     private IDisposable checkBalance;
@@ -114,8 +114,8 @@ public class WalletSystem : SystemBehaviour
         // generate a key pair
         this.keys = new KeyPair(privateKey);
         this.wallet = KeyPairToWallet(this.keys);
-        this.wallet.GAS = 0.0;
-        this.GAS.Value = this.wallet.GAS;
+        this.wallet.GAS.Value = 0.0m;
+        this.GAS.Value = this.wallet.GAS.Value;
 
         SaveWallet();
 
@@ -142,7 +142,7 @@ public class WalletSystem : SystemBehaviour
         }
 
         this.wallet = KeyPairToWallet(this.keys);
-        this.wallet.GAS = 0.0;
+        this.wallet.GAS.Value = 0.0m;
         SaveWallet();
 
         if (checkBalance != null)
@@ -178,13 +178,13 @@ public class WalletSystem : SystemBehaviour
                 var balances = api.GetAssetBalancesOf(this.keys);
 
                 decimal balance = balances.ContainsKey("GAS") ? balances["GAS"] : 0;
-                wallet.GAS = (double)balance;
+                wallet.GAS.Value = balance;
 
                 Debug.Log("GAS amount is " + wallet.GAS);
 
-                if (this.GAS.Value != wallet.GAS)
+                if (this.GAS.Value != wallet.GAS.Value)
                 {
-                    this.GAS.Value = wallet.GAS;
+                    this.GAS.Value = wallet.GAS.Value;
                     SaveWallet();
                 }
             }
@@ -224,8 +224,7 @@ public class WalletSystem : SystemBehaviour
 
     private Wallet KeyPairToWallet(KeyPair keyPair)
     {
-        Wallet w = new Wallet(keyPair.PrivateKey.ByteToHex(), keyPair.WIF, keyPair.address, 0.0);
-
-        return w;
+        //var w = new Wallet(keyPair.PrivateKey.ByteToHex(), keyPair.WIF, keyPair.address, 0.0);
+        return new Wallet(keyPair.PrivateKey.ByteToHex(), 0);
     }
 }

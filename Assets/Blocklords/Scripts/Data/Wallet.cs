@@ -1,16 +1,50 @@
-﻿[System.Serializable]
+﻿using Neo.Lux.Cryptography;
+using Neo.Lux.Utils;
+
+[System.Serializable]
 public class Wallet
 {
-    public string PrivateKey { get; private set; }
-    public string Address { get; set; }
-    public string WIF { get; set; }
-    public double GAS { get; set; }
+    public DecimalReactiveProperty GAS = new DecimalReactiveProperty();
+    public KeyPair keys;
 
-    public Wallet(string privateKey, string wif, string address, double gas)
+    public Wallet(string privateKey, decimal gas)
     {
-        PrivateKey = privateKey;
-        WIF = wif;
-        Address = address;
-        GAS = gas;
+        this.keys = new KeyPair(privateKey.HexToBytes());
+        GAS.Value = gas;
+    }
+
+    public Wallet(KeyPair keys)
+    {
+        this.keys = keys;
+        GAS.Value = 0;
+    }
+
+    public Wallet(byte[] privateKey)
+    {
+        this.keys = new KeyPair(privateKey);
+        GAS.Value = 0;
+    }
+
+    public Wallet(string wif)
+    {
+        this.keys = KeyPair.FromWIF(wif);
+        GAS.Value = 0;
+    }
+
+    public Wallet()
+    {
+        keys = null;
+        GAS.Value = 0;
+    }
+
+    public static bool IsNull(Wallet wallet)
+    {
+        if (wallet == null) { return true; }
+        return (wallet.keys == null);
+    }
+    public void SetNull()
+    {
+        keys = null;
+        GAS.Value = 0;
     }
 }
