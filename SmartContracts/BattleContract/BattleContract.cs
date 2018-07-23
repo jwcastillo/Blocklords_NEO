@@ -2,12 +2,11 @@
 using BattleContract.Character;
 using BattleContract.StorageLog;
 using BattleContract.StorageData;
-using BattleContract.GameComponents;
 using Neo.SmartContract.Framework;
 using Neo.SmartContract.Framework.Services.Neo;
 using System.Numerics;
 using BattleContract.Data;
-using BattleContract.Math;
+
 
 /**
  *  Battle of the Blocklords game.
